@@ -10,24 +10,61 @@ function App() {
     window.location.href = 'http://localhost:5000/install'
   }
 
+  const [user, setUser] = useState(() => {
+    try {
+      const raw = localStorage.getItem('smartreview_user')
+      return raw ? JSON.parse(raw) : null
+    } catch (e) {
+      return null
+    }
+  })
+
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search)
+
+      // installation result
       if (params.has('installed')) {
         const installed = params.get('installed') === '1'
         const repos = params.has('repos') ? Number(params.get('repos')) : 0
         const error = params.get('error') || null
         setInstallResult({ installed, repos, error })
-
-        // remove the query params from the URL without reloading
-        const url = new URL(window.location.href)
-        url.search = ''
-        window.history.replaceState({}, document.title, url.toString())
       }
+
+      // OAuth login result
+      if (params.has('auth')) {
+        const authOk = params.get('auth') === '1'
+        if (authOk) {
+          const name = params.get('name') || ''
+          const login = params.get('login') || ''
+          const avatar = params.get('avatar') || ''
+          const u = { name: decodeURIComponent(name), login: decodeURIComponent(login), avatar: decodeURIComponent(avatar) }
+          setUser(u)
+          try { localStorage.setItem('smartreview_user', JSON.stringify(u)) } catch (e) {}
+        }
+      }
+
+      // remove the query params from the URL without reloading
+      const url = new URL(window.location.href)
+      url.search = ''
+      window.history.replaceState({}, document.title, url.toString())
     } catch (e) {
       // ignore
     }
   }, [])
+
+  const signInWithGitHub = () => {
+    // start OAuth flow
+    window.location.href = 'http://localhost:5000/auth/login'
+  }
+
+  const signOut = async () => {
+    try {
+      await fetch('http://localhost:5000/auth/logout', { method: 'POST' })
+    } catch (e) {}
+    setUser(null)
+    try { localStorage.removeItem('smartreview_user') } catch (e) {}
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -50,13 +87,28 @@ function App() {
             </div>
           </div>
         )}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            Smart Code Review Agent
-          </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Get intelligent AI-powered code analysis on every pull request automatically
-          </p>
+        <div className="flex items-center justify-between mb-12">
+          <div className="text-left">
+            <h1 className="text-5xl font-bold text-gray-900 mb-4">Smart Code Review Agent</h1>
+            <p className="text-xl text-gray-600 max-w-2xl">Get intelligent AI-powered code analysis on every pull request automatically</p>
+          </div>
+          <div className="flex items-center gap-4">
+            {user ? (
+              <div className="flex items-center gap-3">
+                {user.avatar && <img src={user.avatar} alt="avatar" className="w-10 h-10 rounded-full" />}
+                <div className="text-sm text-gray-700">
+                  <div className="font-medium">{user.name || user.login}</div>
+                  <div className="text-xs text-gray-500">{user.login}</div>
+                </div>
+                <button onClick={signOut} className="ml-3 bg-red-50 text-red-700 px-3 py-1 rounded">Sign out</button>
+              </div>
+            ) : (
+              <button onClick={signInWithGitHub} className="bg-black text-white px-4 py-2 rounded flex items-center gap-2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.38 7.86 10.9.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.35-1.3-1.71-1.3-1.71-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.76.41-1.27.74-1.56-2.56-.29-5.26-1.28-5.26-5.69 0-1.26.45-2.29 1.2-3.1-.12-.3-.52-1.52.11-3.17 0 0 .98-.31 3.2 1.19.93-.26 1.93-.39 2.92-.39.99 0 1.99.13 2.92.39 2.22-1.5 3.2-1.19 3.2-1.19.63 1.65.23 2.87.11 3.17.75.81 1.2 1.84 1.2 3.1 0 4.42-2.7 5.4-5.28 5.68.42.36.79 1.07.79 2.15 0 1.55-.01 2.8-.01 3.18 0 .31.21.68.8.56C20.71 21.38 24 17.08 24 12 24 5.73 18.27.5 12 .5z"/></svg>
+                <span>Sign in with GitHub</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Hero Section */}
