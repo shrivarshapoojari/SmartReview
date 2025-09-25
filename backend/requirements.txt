@@ -6,3 +6,5 @@ PyGithub
 python-dotenv
 Flask
 requests
+cryptography
+PyJWT
