@@ -22,6 +22,7 @@ GITHUB_WEBHOOK_SECRET = os.getenv("GITHUB_WEBHOOK_SECRET")
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
 GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
 
+
 def get_github_app_token():
     """Generate JWT for GitHub App authentication"""
     now = int(time.time())

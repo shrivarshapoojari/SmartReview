@@ -2,80 +2,57 @@ import { useState } from 'react'
 import './App.css'
 
 function App() {
-  const [repo, setRepo] = useState('')
-  const [prNumber, setPrNumber] = useState('')
-  const [analysis, setAnalysis] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [installing, setInstalling] = useState(false)
 
-  const handleAnalyze = async () => {
-    if (!repo || !prNumber) return
-    setLoading(true)
-    // Mock API call - replace with actual backend call
-    setTimeout(() => {
-      setAnalysis({
-        summary: "Code review completed",
-        security: ["No critical vulnerabilities found"],
-        bugs: ["Potential null pointer in line 45"],
-        performance: ["Consider optimizing loop in function X"],
-        quality: ["Good code structure overall"]
-      })
-      setLoading(false)
-    }, 2000)
+  const handleInstallApp = () => {
+    setInstalling(true)
+    // Redirect to GitHub App installation
+    window.location.href = 'http://localhost:5000/install'
   }
 
   return (
     <div className="app">
       <h1>Smart Code Review Agent</h1>
-      <div className="input-section">
-        <input
-          type="text"
-          placeholder="GitHub Repo (owner/repo)"
-          value={repo}
-          onChange={(e) => setRepo(e.target.value)}
-        />
-        <input
-          type="number"
-          placeholder="PR Number"
-          value={prNumber}
-          onChange={(e) => setPrNumber(e.target.value)}
-        />
-        <button onClick={handleAnalyze} disabled={loading}>
-          {loading ? 'Analyzing...' : 'Analyze PR'}
-        </button>
+      <div className="hero-section">
+        <h2>Automated AI Code Reviews</h2>
+        <p>Get intelligent code analysis on every pull request automatically.</p>
+        <ul>
+          <li>🔍 Security vulnerability detection</li>
+          <li>🐛 Bug identification</li>
+          <li>⚡ Performance optimization suggestions</li>
+          <li>📝 Code quality improvements</li>
+        </ul>
       </div>
-      {analysis && (
-        <div className="results">
-          <h2>Analysis Results</h2>
-          <div className="section">
-            <h3>Summary</h3>
-            <p>{analysis.summary}</p>
+
+      <div className="install-section">
+        <h3>Install SmartReview on Your Repositories</h3>
+        <p>One-click installation sets up automatic code reviews for all your repos.</p>
+        <button onClick={handleInstallApp} disabled={installing} className="install-btn">
+          {installing ? 'Redirecting to GitHub...' : '🚀 Install SmartReview'}
+        </button>
+        <p className="note">
+          <strong>Note:</strong> You'll be redirected to GitHub to install the app.
+          After installation, webhooks will be automatically configured for all selected repositories.
+        </p>
+      </div>
+
+      <div className="features">
+        <h3>How It Works</h3>
+        <div className="feature-grid">
+          <div className="feature">
+            <h4>1. Install App</h4>
+            <p>Click install and authorize on GitHub</p>
           </div>
-          <div className="section">
-            <h3>Security Issues</h3>
-            <ul>
-              {analysis.security.map((item, i) => <li key={i}>{item}</li>)}
-            </ul>
+          <div className="feature">
+            <h4>2. Select Repos</h4>
+            <p>Choose which repositories to monitor</p>
           </div>
-          <div className="section">
-            <h3>Bugs</h3>
-            <ul>
-              {analysis.bugs.map((item, i) => <li key={i}>{item}</li>)}
-            </ul>
-          </div>
-          <div className="section">
-            <h3>Performance</h3>
-            <ul>
-              {analysis.performance.map((item, i) => <li key={i}>{item}</li>)}
-            </ul>
-          </div>
-          <div className="section">
-            <h3>Code Quality</h3>
-            <ul>
-              {analysis.quality.map((item, i) => <li key={i}>{item}</li>)}
-            </ul>
+          <div className="feature">
+            <h4>3. Automatic Reviews</h4>
+            <p>AI analyzes every PR automatically</p>
           </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }

@@ -90,6 +90,133 @@
         "documentation": {}
     },
     {
+        "label": "Flask",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "request",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "jsonify",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "redirect",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "session",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "hmac",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "hmac",
+        "description": "hmac",
+        "detail": "hmac",
+        "documentation": {}
+    },
+    {
+        "label": "hashlib",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "hashlib",
+        "description": "hashlib",
+        "detail": "hashlib",
+        "documentation": {}
+    },
+    {
+        "label": "jwt",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "jwt",
+        "description": "jwt",
+        "detail": "jwt",
+        "documentation": {}
+    },
+    {
+        "label": "time",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "time",
+        "description": "time",
+        "detail": "time",
+        "documentation": {}
+    },
+    {
+        "label": "requests",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "requests",
+        "description": "requests",
+        "detail": "requests",
+        "documentation": {}
+    },
+    {
+        "label": "load_dotenv",
+        "importPath": "dotenv",
+        "description": "dotenv",
+        "isExtraImport": true,
+        "detail": "dotenv",
+        "documentation": {}
+    },
+    {
+        "label": "load_dotenv",
+        "importPath": "dotenv",
+        "description": "dotenv",
+        "isExtraImport": true,
+        "detail": "dotenv",
+        "documentation": {}
+    },
+    {
+        "label": "code_review_agent",
+        "importPath": "code_review_agent",
+        "description": "code_review_agent",
+        "isExtraImport": true,
+        "detail": "code_review_agent",
+        "documentation": {}
+    },
+    {
+        "label": "threading",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "threading",
+        "description": "threading",
+        "detail": "threading",
+        "documentation": {}
+    },
+    {
+        "label": "base64",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "base64",
+        "description": "base64",
+        "detail": "base64",
+        "documentation": {}
+    },
+    {
         "label": "StateGraph",
         "importPath": "langgraph.graph",
         "description": "langgraph.graph",
@@ -450,11 +577,164 @@
         "documentation": {}
     },
     {
+        "label": "get_github_app_token",
+        "kind": 2,
+        "importPath": "backend.app",
+        "description": "backend.app",
+        "peekOfCode": "def get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,\n        'exp': now + (10 * 60),  # 10 minutes\n        'iss': GITHUB_APP_ID\n    }\n    # Load private key\n    private_key = GITHUB_PRIVATE_KEY.replace('\\\\n', '\\n')",
+        "detail": "backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "get_installation_token",
+        "kind": 2,
+        "importPath": "backend.app",
+        "description": "backend.app",
+        "peekOfCode": "def get_installation_token(installation_id):\n    \"\"\"Get installation access token\"\"\"\n    jwt_token = get_github_app_token()\n    url = f\"https://api.github.com/app/installations/{installation_id}/access_tokens\"\n    headers = {\n        'Authorization': f'Bearer {jwt_token}',\n        'Accept': 'application/vnd.github.v3+json'\n    }\n    response = requests.post(url, headers=headers)\n    return response.json()['token']",
+        "detail": "backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "create_webhook",
+        "kind": 2,
+        "importPath": "backend.app",
+        "description": "backend.app",
+        "peekOfCode": "def create_webhook(repo_full_name, installation_token):\n    \"\"\"Create webhook for the repository\"\"\"\n    url = f\"https://api.github.com/repos/{repo_full_name}/hooks\"\n    headers = {\n        'Authorization': f'token {installation_token}',\n        'Accept': 'application/vnd.github.v3+json'\n    }\n    webhook_url = os.getenv(\"WEBHOOK_URL\", \"http://localhost:5000/webhook\")\n    data = {\n        \"name\": \"web\",",
+        "detail": "backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "verify_signature",
+        "kind": 2,
+        "importPath": "backend.app",
+        "description": "backend.app",
+        "peekOfCode": "def verify_signature(payload, signature):\n    if not GITHUB_WEBHOOK_SECRET:\n        return True\n    expected_signature = hmac.new(GITHUB_WEBHOOK_SECRET.encode(), payload, hashlib.sha256).hexdigest()\n    expected_signature = f\"sha256={expected_signature}\"\n    return hmac.compare_digest(expected_signature, signature)\n@app.route('/webhook', methods=['POST'])\ndef github_webhook():\n    payload = request.get_data()\n    signature = request.headers.get('X-Hub-Signature-256')",
+        "detail": "backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "github_webhook",
+        "kind": 2,
+        "importPath": "backend.app",
+        "description": "backend.app",
+        "peekOfCode": "def github_webhook():\n    payload = request.get_data()\n    signature = request.headers.get('X-Hub-Signature-256')\n    if not verify_signature(payload, signature):\n        return jsonify({'error': 'Invalid signature'}), 403\n    event = request.headers.get('X-GitHub-Event')\n    data = request.get_json()\n    if event == 'pull_request':\n        action = data.get('action')\n        if action in ['opened', 'synchronize', 'reopened']:",
+        "detail": "backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "run_analysis",
+        "kind": 2,
+        "importPath": "backend.app",
+        "description": "backend.app",
+        "peekOfCode": "def run_analysis(repo_name, pr_number, installation_token):\n    try:\n        # Temporarily set the token for this analysis\n        original_token = os.environ.get('GITHUB_TOKEN')\n        os.environ['GITHUB_TOKEN'] = installation_token\n        result = code_review_agent.invoke({\n            \"repo_name\": repo_name,\n            \"pr_number\": pr_number,\n            \"code_changes\": [],\n            \"feedback\": []",
+        "detail": "backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "install_app",
+        "kind": 2,
+        "importPath": "backend.app",
+        "description": "backend.app",
+        "peekOfCode": "def install_app():\n    \"\"\"Redirect to GitHub App installation\"\"\"\n    github_url = f\"https://github.com/apps/smartreview/installations/new\"\n    return redirect(github_url)\n@app.route('/github/callback')\ndef github_callback():\n    \"\"\"Handle GitHub App installation callback\"\"\"\n    installation_id = request.args.get('installation_id')\n    setup_action = request.args.get('setup_action')\n    if setup_action == 'install' and installation_id:",
+        "detail": "backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "github_callback",
+        "kind": 2,
+        "importPath": "backend.app",
+        "description": "backend.app",
+        "peekOfCode": "def github_callback():\n    \"\"\"Handle GitHub App installation callback\"\"\"\n    installation_id = request.args.get('installation_id')\n    setup_action = request.args.get('setup_action')\n    if setup_action == 'install' and installation_id:\n        # Get installation token\n        try:\n            token = get_installation_token(installation_id)\n            # Get list of repositories for this installation\n            url = f\"https://api.github.com/installation/repositories\"",
+        "detail": "backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "health",
+        "kind": 2,
+        "importPath": "backend.app",
+        "description": "backend.app",
+        "peekOfCode": "def health():\n    return jsonify({'status': 'healthy'}), 200\n@app.route('/link-repo', methods=['POST'])\ndef link_repo():\n    # For GitHub App, linking is done through installation\n    return jsonify({'message': 'Please install the GitHub App to link repositories automatically'}), 200\nif __name__ == '__main__':\n    app.run(debug=True, port=5000)",
+        "detail": "backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "link_repo",
+        "kind": 2,
+        "importPath": "backend.app",
+        "description": "backend.app",
+        "peekOfCode": "def link_repo():\n    # For GitHub App, linking is done through installation\n    return jsonify({'message': 'Please install the GitHub App to link repositories automatically'}), 200\nif __name__ == '__main__':\n    app.run(debug=True, port=5000)",
+        "detail": "backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "app",
+        "kind": 5,
+        "importPath": "backend.app",
+        "description": "backend.app",
+        "peekOfCode": "app = Flask(__name__)\napp.secret_key = os.getenv(\"FLASK_SECRET_KEY\", \"dev-secret-key\")\n# GitHub App configuration\nGITHUB_APP_ID = os.getenv(\"GITHUB_APP_ID\")\nGITHUB_PRIVATE_KEY = os.getenv(\"GITHUB_PRIVATE_KEY\")\nGITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"",
+        "detail": "backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "app.secret_key",
+        "kind": 5,
+        "importPath": "backend.app",
+        "description": "backend.app",
+        "peekOfCode": "app.secret_key = os.getenv(\"FLASK_SECRET_KEY\", \"dev-secret-key\")\n# GitHub App configuration\nGITHUB_APP_ID = os.getenv(\"GITHUB_APP_ID\")\nGITHUB_PRIVATE_KEY = os.getenv(\"GITHUB_PRIVATE_KEY\")\nGITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())",
+        "detail": "backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "GITHUB_APP_ID",
+        "kind": 5,
+        "importPath": "backend.app",
+        "description": "backend.app",
+        "peekOfCode": "GITHUB_APP_ID = os.getenv(\"GITHUB_APP_ID\")\nGITHUB_PRIVATE_KEY = os.getenv(\"GITHUB_PRIVATE_KEY\")\nGITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,",
+        "detail": "backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "GITHUB_PRIVATE_KEY",
+        "kind": 5,
+        "importPath": "backend.app",
+        "description": "backend.app",
+        "peekOfCode": "GITHUB_PRIVATE_KEY = os.getenv(\"GITHUB_PRIVATE_KEY\")\nGITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,\n        'exp': now + (10 * 60),  # 10 minutes",
+        "detail": "backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "GITHUB_WEBHOOK_SECRET",
+        "kind": 5,
+        "importPath": "backend.app",
+        "description": "backend.app",
+        "peekOfCode": "GITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,\n        'exp': now + (10 * 60),  # 10 minutes\n        'iss': GITHUB_APP_ID",
+        "detail": "backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "GITHUB_CLIENT_ID",
+        "kind": 5,
+        "importPath": "backend.app",
+        "description": "backend.app",
+        "peekOfCode": "GITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,\n        'exp': now + (10 * 60),  # 10 minutes\n        'iss': GITHUB_APP_ID\n    }",
+        "detail": "backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "GITHUB_CLIENT_SECRET",
+        "kind": 5,
+        "importPath": "backend.app",
+        "description": "backend.app",
+        "peekOfCode": "GITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,\n        'exp': now + (10 * 60),  # 10 minutes\n        'iss': GITHUB_APP_ID\n    }\n    # Load private key",
+        "detail": "backend.app",
+        "documentation": {}
+    },
+    {
         "label": "CodeReviewState",
         "kind": 6,
         "importPath": "backend.code_review_agent",
         "description": "backend.code_review_agent",
-        "peekOfCode": "class CodeReviewState(TypedDict):\n    repo_name: str\n    pr_number: int\n    code_changes: List[str]\n    feedback: List[str]\n# Set up Groq LLM\nllm = ChatGroq(\n    model=\"openai/gpt-oss-20b\",\n    api_key=os.getenv(\"GROQ_API_KEY\")\n)",
+        "peekOfCode": "class CodeReviewState(TypedDict):\n    repo_name: str\n    pr_number: int\n    code_changes: List[str]\n    feedback: List[str]\n# Set up Groq LLM\nllm = ChatGroq(\n    model=\"openai/gpt-oss-20b\",\n )\n# Fetch PR changes",
         "detail": "backend.code_review_agent",
         "documentation": {}
     },
@@ -499,7 +779,7 @@
         "kind": 5,
         "importPath": "backend.code_review_agent",
         "description": "backend.code_review_agent",
-        "peekOfCode": "llm = ChatGroq(\n    model=\"openai/gpt-oss-20b\",\n    api_key=os.getenv(\"GROQ_API_KEY\")\n)\n# Fetch PR changes\ndef fetch_pr_changes(state: CodeReviewState):\n    repo_name = state[\"repo_name\"]\n    pr_number = state[\"pr_number\"]\n    g = Github(os.getenv(\"GITHUB_TOKEN\"))\n    repo = g.get_repo(repo_name)",
+        "peekOfCode": "llm = ChatGroq(\n    model=\"openai/gpt-oss-20b\",\n )\n# Fetch PR changes\ndef fetch_pr_changes(state: CodeReviewState):\n    repo_name = state[\"repo_name\"]\n    pr_number = state[\"pr_number\"]\n    g = Github(os.getenv(\"GITHUB_TOKEN\"))\n    repo = g.get_repo(repo_name)\n    pr = repo.get_pull(pr_number)",
         "detail": "backend.code_review_agent",
         "documentation": {}
     },

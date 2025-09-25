@@ -1,0 +1,10 @@
+name: SmartReview
+description: AI-powered code review automation
+homepage_url: https://your-deployed-url.com
+permissions:
+  contents: read
+  pull_requests: write
+  issues: write
+events:
+  pull_request
+  pull_request_review

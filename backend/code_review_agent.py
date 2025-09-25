@@ -4,7 +4,11 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from typing import TypedDict, List
 import os
 from github import Github
+from dotenv import load_dotenv
 
+# Load environment variables
+load_dotenv()
+os.environ["GROQ_API_KEY"]=os.getenv("GROQ_API_KEY")
 # Define the state
 class CodeReviewState(TypedDict):
     repo_name: str
@@ -15,9 +19,7 @@ class CodeReviewState(TypedDict):
 # Set up Groq LLM
 llm = ChatGroq(
     model="openai/gpt-oss-20b",
-    api_key=os.getenv("GROQ_API_KEY")
-)
-
+ )
 # Fetch PR changes
 def fetch_pr_changes(state: CodeReviewState):
     repo_name = state["repo_name"]
