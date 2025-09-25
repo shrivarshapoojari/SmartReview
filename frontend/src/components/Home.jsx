@@ -6,13 +6,15 @@ function Home() {
   const [installResult, setInstallResult] = useState(null);
   const navigate = useNavigate();
 
+  const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  };
+
   const [user, setUser] = useState(() => {
-    try {
-      const raw = localStorage.getItem('smartreview_user');
-      return raw ? JSON.parse(raw) : null;
-    } catch (e) {
-      return null;
-    }
+    const userCookie = getCookie('user');
+    return userCookie ? JSON.parse(decodeURIComponent(userCookie)) : null;
   });
 
   useEffect(() => {
@@ -31,12 +33,11 @@ function Home() {
       if (params.has('auth')) {
         const authOk = params.get('auth') === '1';
         if (authOk) {
-          const name = params.get('name') || '';
-          const login = params.get('login') || '';
-          const avatar = params.get('avatar') || '';
-          const u = { name: decodeURIComponent(name), login: decodeURIComponent(login), avatar: decodeURIComponent(avatar) };
-          setUser(u);
-          try { localStorage.setItem('smartreview_user', JSON.stringify(u)); } catch (e) {}
+          const userCookie = getCookie('user');
+          if (userCookie) {
+            const u = JSON.parse(decodeURIComponent(userCookie));
+            setUser(u);
+          }
         }
       }
 
@@ -72,7 +73,6 @@ function Home() {
       await fetch('http://localhost:5000/auth/logout', { method: 'POST' });
     } catch (e) {}
     setUser(null);
-    try { localStorage.removeItem('smartreview_user'); } catch (e) {}
   };
 
   return (
