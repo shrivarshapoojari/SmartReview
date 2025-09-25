@@ -217,6 +217,14 @@
         "documentation": {}
     },
     {
+        "label": "quote_plus",
+        "importPath": "urllib.parse",
+        "description": "urllib.parse",
+        "isExtraImport": true,
+        "detail": "urllib.parse",
+        "documentation": {}
+    },
+    {
         "label": "StateGraph",
         "importPath": "langgraph.graph",
         "description": "langgraph.graph",
@@ -635,7 +643,7 @@
         "kind": 2,
         "importPath": "backend.app",
         "description": "backend.app",
-        "peekOfCode": "def install_app():\n    \"\"\"Redirect to GitHub App installation\"\"\"\n    github_url = f\"https://github.com/apps/smartreview/installations/new\"\n    return redirect(github_url)\n@app.route('/github/callback')\ndef github_callback():\n    \"\"\"Handle GitHub App installation callback\"\"\"\n    installation_id = request.args.get('installation_id')\n    setup_action = request.args.get('setup_action')\n    if setup_action == 'install' and installation_id:",
+        "peekOfCode": "def install_app():\n    \"\"\"Redirect to GitHub App installation\"\"\"\n    github_url = f\"https://github.com/apps/{GITHUB_APP_NAME}/installations/new\"\n    # Tell GitHub to redirect back to our callback after installation\n    callback = f\"{BACKEND_URL}/github/callback\"\n    github_url = f\"https://github.com/apps/{GITHUB_APP_NAME}/installations/new?redirect_url={quote_plus(callback)}\"\n    return redirect(github_url)\n@app.route('/github/callback')\ndef github_callback():\n    \"\"\"Handle GitHub App installation callback\"\"\"",
         "detail": "backend.app",
         "documentation": {}
     },
@@ -671,7 +679,7 @@
         "kind": 5,
         "importPath": "backend.app",
         "description": "backend.app",
-        "peekOfCode": "app = Flask(__name__)\napp.secret_key = os.getenv(\"FLASK_SECRET_KEY\", \"dev-secret-key\")\n# GitHub App configuration\nGITHUB_APP_ID = os.getenv(\"GITHUB_APP_ID\")\nGITHUB_PRIVATE_KEY = os.getenv(\"GITHUB_PRIVATE_KEY\")\nGITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"",
+        "peekOfCode": "app = Flask(__name__)\napp.secret_key = os.getenv(\"FLASK_SECRET_KEY\", \"dev-secret-key\")\n# GitHub App configuration\nGITHUB_APP_ID = os.getenv(\"GITHUB_APP_ID\")\nGITHUB_PRIVATE_KEY = os.getenv(\"GITHUB_PRIVATE_KEY\")\nGITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\nFRONTEND_URL = os.getenv(\"FRONTEND_URL\", \"http://localhost:5173\")\nGITHUB_APP_NAME = os.getenv(\"GITHUB_APP_NAME\", \"smartreview\")",
         "detail": "backend.app",
         "documentation": {}
     },
@@ -680,7 +688,7 @@
         "kind": 5,
         "importPath": "backend.app",
         "description": "backend.app",
-        "peekOfCode": "app.secret_key = os.getenv(\"FLASK_SECRET_KEY\", \"dev-secret-key\")\n# GitHub App configuration\nGITHUB_APP_ID = os.getenv(\"GITHUB_APP_ID\")\nGITHUB_PRIVATE_KEY = os.getenv(\"GITHUB_PRIVATE_KEY\")\nGITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())",
+        "peekOfCode": "app.secret_key = os.getenv(\"FLASK_SECRET_KEY\", \"dev-secret-key\")\n# GitHub App configuration\nGITHUB_APP_ID = os.getenv(\"GITHUB_APP_ID\")\nGITHUB_PRIVATE_KEY = os.getenv(\"GITHUB_PRIVATE_KEY\")\nGITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\nFRONTEND_URL = os.getenv(\"FRONTEND_URL\", \"http://localhost:5173\")\nGITHUB_APP_NAME = os.getenv(\"GITHUB_APP_NAME\", \"smartreview\")\nBACKEND_URL = os.getenv(\"BACKEND_URL\", \"http://localhost:5000\")",
         "detail": "backend.app",
         "documentation": {}
     },
@@ -689,7 +697,7 @@
         "kind": 5,
         "importPath": "backend.app",
         "description": "backend.app",
-        "peekOfCode": "GITHUB_APP_ID = os.getenv(\"GITHUB_APP_ID\")\nGITHUB_PRIVATE_KEY = os.getenv(\"GITHUB_PRIVATE_KEY\")\nGITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,",
+        "peekOfCode": "GITHUB_APP_ID = os.getenv(\"GITHUB_APP_ID\")\nGITHUB_PRIVATE_KEY = os.getenv(\"GITHUB_PRIVATE_KEY\")\nGITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\nFRONTEND_URL = os.getenv(\"FRONTEND_URL\", \"http://localhost:5173\")\nGITHUB_APP_NAME = os.getenv(\"GITHUB_APP_NAME\", \"smartreview\")\nBACKEND_URL = os.getenv(\"BACKEND_URL\", \"http://localhost:5000\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"",
         "detail": "backend.app",
         "documentation": {}
     },
@@ -698,7 +706,7 @@
         "kind": 5,
         "importPath": "backend.app",
         "description": "backend.app",
-        "peekOfCode": "GITHUB_PRIVATE_KEY = os.getenv(\"GITHUB_PRIVATE_KEY\")\nGITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,\n        'exp': now + (10 * 60),  # 10 minutes",
+        "peekOfCode": "GITHUB_PRIVATE_KEY = os.getenv(\"GITHUB_PRIVATE_KEY\")\nGITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\nFRONTEND_URL = os.getenv(\"FRONTEND_URL\", \"http://localhost:5173\")\nGITHUB_APP_NAME = os.getenv(\"GITHUB_APP_NAME\", \"smartreview\")\nBACKEND_URL = os.getenv(\"BACKEND_URL\", \"http://localhost:5000\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())",
         "detail": "backend.app",
         "documentation": {}
     },
@@ -707,7 +715,7 @@
         "kind": 5,
         "importPath": "backend.app",
         "description": "backend.app",
-        "peekOfCode": "GITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,\n        'exp': now + (10 * 60),  # 10 minutes\n        'iss': GITHUB_APP_ID",
+        "peekOfCode": "GITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\nFRONTEND_URL = os.getenv(\"FRONTEND_URL\", \"http://localhost:5173\")\nGITHUB_APP_NAME = os.getenv(\"GITHUB_APP_NAME\", \"smartreview\")\nBACKEND_URL = os.getenv(\"BACKEND_URL\", \"http://localhost:5000\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {",
         "detail": "backend.app",
         "documentation": {}
     },
@@ -716,7 +724,7 @@
         "kind": 5,
         "importPath": "backend.app",
         "description": "backend.app",
-        "peekOfCode": "GITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,\n        'exp': now + (10 * 60),  # 10 minutes\n        'iss': GITHUB_APP_ID\n    }",
+        "peekOfCode": "GITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\nFRONTEND_URL = os.getenv(\"FRONTEND_URL\", \"http://localhost:5173\")\nGITHUB_APP_NAME = os.getenv(\"GITHUB_APP_NAME\", \"smartreview\")\nBACKEND_URL = os.getenv(\"BACKEND_URL\", \"http://localhost:5000\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,",
         "detail": "backend.app",
         "documentation": {}
     },
@@ -725,7 +733,34 @@
         "kind": 5,
         "importPath": "backend.app",
         "description": "backend.app",
-        "peekOfCode": "GITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,\n        'exp': now + (10 * 60),  # 10 minutes\n        'iss': GITHUB_APP_ID\n    }\n    # Load private key",
+        "peekOfCode": "GITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\nFRONTEND_URL = os.getenv(\"FRONTEND_URL\", \"http://localhost:5173\")\nGITHUB_APP_NAME = os.getenv(\"GITHUB_APP_NAME\", \"smartreview\")\nBACKEND_URL = os.getenv(\"BACKEND_URL\", \"http://localhost:5000\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,\n        'exp': now + (10 * 60),  # 10 minutes",
+        "detail": "backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "FRONTEND_URL",
+        "kind": 5,
+        "importPath": "backend.app",
+        "description": "backend.app",
+        "peekOfCode": "FRONTEND_URL = os.getenv(\"FRONTEND_URL\", \"http://localhost:5173\")\nGITHUB_APP_NAME = os.getenv(\"GITHUB_APP_NAME\", \"smartreview\")\nBACKEND_URL = os.getenv(\"BACKEND_URL\", \"http://localhost:5000\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,\n        'exp': now + (10 * 60),  # 10 minutes\n        'iss': GITHUB_APP_ID",
+        "detail": "backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "GITHUB_APP_NAME",
+        "kind": 5,
+        "importPath": "backend.app",
+        "description": "backend.app",
+        "peekOfCode": "GITHUB_APP_NAME = os.getenv(\"GITHUB_APP_NAME\", \"smartreview\")\nBACKEND_URL = os.getenv(\"BACKEND_URL\", \"http://localhost:5000\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,\n        'exp': now + (10 * 60),  # 10 minutes\n        'iss': GITHUB_APP_ID\n    }",
+        "detail": "backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "BACKEND_URL",
+        "kind": 5,
+        "importPath": "backend.app",
+        "description": "backend.app",
+        "peekOfCode": "BACKEND_URL = os.getenv(\"BACKEND_URL\", \"http://localhost:5000\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,\n        'exp': now + (10 * 60),  # 10 minutes\n        'iss': GITHUB_APP_ID\n    }\n    # Load private key",
         "detail": "backend.app",
         "documentation": {}
     },

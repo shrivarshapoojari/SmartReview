@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 function App() {
   const [installing, setInstalling] = useState(false)
+  const [installResult, setInstallResult] = useState(null)
 
   const handleInstallApp = () => {
     setInstalling(true)
@@ -9,10 +10,46 @@ function App() {
     window.location.href = 'http://localhost:5000/install'
   }
 
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search)
+      if (params.has('installed')) {
+        const installed = params.get('installed') === '1'
+        const repos = params.has('repos') ? Number(params.get('repos')) : 0
+        const error = params.get('error') || null
+        setInstallResult({ installed, repos, error })
+
+        // remove the query params from the URL without reloading
+        const url = new URL(window.location.href)
+        url.search = ''
+        window.history.replaceState({}, document.title, url.toString())
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [])
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Header */}
+        {installResult && (
+          <div className={`mb-6 p-4 rounded-lg ${installResult.installed ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-red-50 border border-red-200 text-red-800'}`} role="status">
+            <div className="flex items-center justify-between max-w-4xl mx-auto">
+              <div>
+                {installResult.installed ? (
+                  <div className="font-medium">SmartReview installed successfully for {installResult.repos} repository(ies).</div>
+                ) : (
+                  <div className="font-medium">Installation failed: {installResult.error || 'Unknown error'}</div>
+                )}
+                <div className="text-sm opacity-90">You can close this tab or continue using the app.</div>
+              </div>
+              <div>
+                <button className="px-3 py-1 bg-white rounded-md shadow-sm" onClick={() => setInstallResult(null)}>Dismiss</button>
+              </div>
+            </div>
+          </div>
+        )}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-gray-900 mb-4">
             Smart Code Review Agent

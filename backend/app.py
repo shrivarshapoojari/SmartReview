@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from code_review_agent import code_review_agent
 import threading
 import base64
+from urllib.parse import quote_plus
 
 load_dotenv()
 
@@ -21,6 +22,9 @@ GITHUB_PRIVATE_KEY = os.getenv("GITHUB_PRIVATE_KEY")
 GITHUB_WEBHOOK_SECRET = os.getenv("GITHUB_WEBHOOK_SECRET")
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
 GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+GITHUB_APP_NAME = os.getenv("GITHUB_APP_NAME", "smartreview")
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:5000")
 
 
 def get_github_app_token():
@@ -136,7 +140,10 @@ def run_analysis(repo_name, pr_number, installation_token):
 @app.route('/install')
 def install_app():
     """Redirect to GitHub App installation"""
-    github_url = f"https://github.com/apps/smartreview/installations/new"
+    github_url = f"https://github.com/apps/{GITHUB_APP_NAME}/installations/new"
+    # Tell GitHub to redirect back to our callback after installation
+    callback = f"{BACKEND_URL}/github/callback"
+    github_url = f"https://github.com/apps/{GITHUB_APP_NAME}/installations/new?redirect_url={quote_plus(callback)}"
     return redirect(github_url)
 
 @app.route('/github/callback')
@@ -166,12 +173,18 @@ def github_callback():
                 if create_webhook(repo['full_name'], token):
                     success_count += 1
 
-            return f"Successfully set up SmartReview for {success_count} repositories!"
+            # Redirect back to the frontend with success info
+            redirect_url = f"{FRONTEND_URL}/?installed=1&repos={success_count}"
+            return redirect(redirect_url)
 
         except Exception as e:
-            return f"Error setting up: {str(e)}"
+            # Redirect back to frontend with error message (URL-encoded)
+            msg = quote_plus(str(e))
+            redirect_url = f"{FRONTEND_URL}/?installed=0&error={msg}"
+            return redirect(redirect_url)
 
-    return "Installation completed!"
+    # If no specific install action, return user to the frontend
+    return redirect(FRONTEND_URL)
 
 @app.route('/health', methods=['GET'])
 def health():
