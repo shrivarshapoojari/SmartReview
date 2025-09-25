@@ -3,6 +3,10 @@ import Home from './components/Home';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+import axios from 'axios';
+
+// Set default axios config to send cookies
+axios.defaults.withCredentials = true;
 
 function App() {
   return (
