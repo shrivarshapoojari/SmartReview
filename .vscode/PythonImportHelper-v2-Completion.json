@@ -130,6 +130,30 @@
         "documentation": {}
     },
     {
+        "label": "Flask",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "request",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "render_template_string",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
         "label": "hmac",
         "kind": 6,
         "isExtraImport": true,
@@ -295,6 +319,15 @@
         "importPath": "json",
         "description": "json",
         "detail": "json",
+        "documentation": {}
+    },
+    {
+        "label": "sqlite3",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "sqlite3",
+        "description": "sqlite3",
+        "detail": "sqlite3",
         "documentation": {}
     },
     {
@@ -635,7 +668,7 @@
         "kind": 2,
         "importPath": "backend.app",
         "description": "backend.app",
-        "peekOfCode": "def install_app():\n    \"\"\"Redirect to GitHub App installation\"\"\"\n    github_url = f\"https://github.com/apps/smartreview/installations/new\"\n    return redirect(github_url)\n@app.route('/github/callback')\ndef github_callback():\n    \"\"\"Handle GitHub App installation callback\"\"\"\n    installation_id = request.args.get('installation_id')\n    setup_action = request.args.get('setup_action')\n    if setup_action == 'install' and installation_id:",
+        "peekOfCode": "def install_app():\n    \"\"\"Redirect to GitHub App installation\"\"\"\n    github_url = f\"https://github.com/apps/{GITHUB_APP_NAME}/installations/new\"\n    return redirect(github_url)\n@app.route('/github/callback')\ndef github_callback():\n    \"\"\"Handle GitHub App installation callback\"\"\"\n    installation_id = request.args.get('installation_id')\n    setup_action = request.args.get('setup_action')\n    if setup_action == 'install' and installation_id:",
         "detail": "backend.app",
         "documentation": {}
     },
@@ -671,7 +704,7 @@
         "kind": 5,
         "importPath": "backend.app",
         "description": "backend.app",
-        "peekOfCode": "app = Flask(__name__)\napp.secret_key = os.getenv(\"FLASK_SECRET_KEY\", \"dev-secret-key\")\n# GitHub App configuration\nGITHUB_APP_ID = os.getenv(\"GITHUB_APP_ID\")\nGITHUB_PRIVATE_KEY = os.getenv(\"GITHUB_PRIVATE_KEY\")\nGITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"",
+        "peekOfCode": "app = Flask(__name__)\napp.secret_key = os.getenv(\"FLASK_SECRET_KEY\", \"dev-secret-key\")\n# GitHub App configuration\nGITHUB_APP_ID = os.getenv(\"GITHUB_APP_ID\")\nGITHUB_PRIVATE_KEY = os.getenv(\"GITHUB_PRIVATE_KEY\")\nGITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\nGITHUB_APP_NAME = os.getenv(\"GITHUB_APP_NAME\", \"smartreview\")  # Default fallback\ndef get_github_app_token():",
         "detail": "backend.app",
         "documentation": {}
     },
@@ -680,7 +713,7 @@
         "kind": 5,
         "importPath": "backend.app",
         "description": "backend.app",
-        "peekOfCode": "app.secret_key = os.getenv(\"FLASK_SECRET_KEY\", \"dev-secret-key\")\n# GitHub App configuration\nGITHUB_APP_ID = os.getenv(\"GITHUB_APP_ID\")\nGITHUB_PRIVATE_KEY = os.getenv(\"GITHUB_PRIVATE_KEY\")\nGITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())",
+        "peekOfCode": "app.secret_key = os.getenv(\"FLASK_SECRET_KEY\", \"dev-secret-key\")\n# GitHub App configuration\nGITHUB_APP_ID = os.getenv(\"GITHUB_APP_ID\")\nGITHUB_PRIVATE_KEY = os.getenv(\"GITHUB_PRIVATE_KEY\")\nGITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\nGITHUB_APP_NAME = os.getenv(\"GITHUB_APP_NAME\", \"smartreview\")  # Default fallback\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"",
         "detail": "backend.app",
         "documentation": {}
     },
@@ -689,7 +722,7 @@
         "kind": 5,
         "importPath": "backend.app",
         "description": "backend.app",
-        "peekOfCode": "GITHUB_APP_ID = os.getenv(\"GITHUB_APP_ID\")\nGITHUB_PRIVATE_KEY = os.getenv(\"GITHUB_PRIVATE_KEY\")\nGITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,",
+        "peekOfCode": "GITHUB_APP_ID = os.getenv(\"GITHUB_APP_ID\")\nGITHUB_PRIVATE_KEY = os.getenv(\"GITHUB_PRIVATE_KEY\")\nGITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\nGITHUB_APP_NAME = os.getenv(\"GITHUB_APP_NAME\", \"smartreview\")  # Default fallback\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {",
         "detail": "backend.app",
         "documentation": {}
     },
@@ -698,7 +731,7 @@
         "kind": 5,
         "importPath": "backend.app",
         "description": "backend.app",
-        "peekOfCode": "GITHUB_PRIVATE_KEY = os.getenv(\"GITHUB_PRIVATE_KEY\")\nGITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,\n        'exp': now + (10 * 60),  # 10 minutes",
+        "peekOfCode": "GITHUB_PRIVATE_KEY = os.getenv(\"GITHUB_PRIVATE_KEY\")\nGITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\nGITHUB_APP_NAME = os.getenv(\"GITHUB_APP_NAME\", \"smartreview\")  # Default fallback\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,",
         "detail": "backend.app",
         "documentation": {}
     },
@@ -707,7 +740,7 @@
         "kind": 5,
         "importPath": "backend.app",
         "description": "backend.app",
-        "peekOfCode": "GITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,\n        'exp': now + (10 * 60),  # 10 minutes\n        'iss': GITHUB_APP_ID",
+        "peekOfCode": "GITHUB_WEBHOOK_SECRET = os.getenv(\"GITHUB_WEBHOOK_SECRET\")\nGITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\nGITHUB_APP_NAME = os.getenv(\"GITHUB_APP_NAME\", \"smartreview\")  # Default fallback\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,\n        'exp': now + (10 * 60),  # 10 minutes",
         "detail": "backend.app",
         "documentation": {}
     },
@@ -716,7 +749,7 @@
         "kind": 5,
         "importPath": "backend.app",
         "description": "backend.app",
-        "peekOfCode": "GITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,\n        'exp': now + (10 * 60),  # 10 minutes\n        'iss': GITHUB_APP_ID\n    }",
+        "peekOfCode": "GITHUB_CLIENT_ID = os.getenv(\"GITHUB_CLIENT_ID\")\nGITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\nGITHUB_APP_NAME = os.getenv(\"GITHUB_APP_NAME\", \"smartreview\")  # Default fallback\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,\n        'exp': now + (10 * 60),  # 10 minutes\n        'iss': GITHUB_APP_ID",
         "detail": "backend.app",
         "documentation": {}
     },
@@ -725,7 +758,16 @@
         "kind": 5,
         "importPath": "backend.app",
         "description": "backend.app",
-        "peekOfCode": "GITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,\n        'exp': now + (10 * 60),  # 10 minutes\n        'iss': GITHUB_APP_ID\n    }\n    # Load private key",
+        "peekOfCode": "GITHUB_CLIENT_SECRET = os.getenv(\"GITHUB_CLIENT_SECRET\")\nGITHUB_APP_NAME = os.getenv(\"GITHUB_APP_NAME\", \"smartreview\")  # Default fallback\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,\n        'exp': now + (10 * 60),  # 10 minutes\n        'iss': GITHUB_APP_ID\n    }",
+        "detail": "backend.app",
+        "documentation": {}
+    },
+    {
+        "label": "GITHUB_APP_NAME",
+        "kind": 5,
+        "importPath": "backend.app",
+        "description": "backend.app",
+        "peekOfCode": "GITHUB_APP_NAME = os.getenv(\"GITHUB_APP_NAME\", \"smartreview\")  # Default fallback\ndef get_github_app_token():\n    \"\"\"Generate JWT for GitHub App authentication\"\"\"\n    now = int(time.time())\n    payload = {\n        'iat': now,\n        'exp': now + (10 * 60),  # 10 minutes\n        'iss': GITHUB_APP_ID\n    }\n    # Load private key",
         "detail": "backend.app",
         "documentation": {}
     },
@@ -835,6 +877,69 @@
         "description": "frontend.node_modules.flatted.python.flatted",
         "peekOfCode": "def stringify(value, *args, **kwargs):\n    known = _Known()\n    input = []\n    output = []\n    i = int(_index(known, input, value))\n    while i < len(input):\n        output.append(_transform(known, input, input[i]))\n        i += 1\n    return _json.dumps(output, *args, **kwargs)",
         "detail": "frontend.node_modules.flatted.python.flatted",
+        "documentation": {}
+    },
+    {
+        "label": "login",
+        "kind": 2,
+        "importPath": "test2.test",
+        "description": "test2.test",
+        "peekOfCode": "def login():\n    if request.method == 'POST':\n        username = request.form['username']\n        password = request.form['password']\n        # Vulnerable: directly concatenating user input into SQL\n        query = f\"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'\"\n        user = c.execute(query).fetchone()\n        if user:\n            return \"Logged in!\"\n        else:",
+        "detail": "test2.test",
+        "documentation": {}
+    },
+    {
+        "label": "greet",
+        "kind": 2,
+        "importPath": "test2.test",
+        "description": "test2.test",
+        "peekOfCode": "def greet():\n    name = request.args.get('name', 'Guest')\n    # Vulnerable: rendering unescaped user input\n    return render_template_string(f\"<h1>Hello, {name}!</h1>\")\n# 3. Insecure File Upload\n@app.route('/upload', methods=['GET', 'POST'])\ndef upload():\n    if request.method == 'POST':\n        file = request.files['file']\n        # Vulnerable: no file type check",
+        "detail": "test2.test",
+        "documentation": {}
+    },
+    {
+        "label": "upload",
+        "kind": 2,
+        "importPath": "test2.test",
+        "description": "test2.test",
+        "peekOfCode": "def upload():\n    if request.method == 'POST':\n        file = request.files['file']\n        # Vulnerable: no file type check\n        file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))\n        return f\"Uploaded {file.filename}!\"\n    return '''\n        <form method=\"POST\" enctype=\"multipart/form-data\">\n            File: <input type=\"file\" name=\"file\"><br>\n            <input type=\"submit\">",
+        "detail": "test2.test",
+        "documentation": {}
+    },
+    {
+        "label": "app",
+        "kind": 5,
+        "importPath": "test2.test",
+        "description": "test2.test",
+        "peekOfCode": "app = Flask(__name__)\napp.config['UPLOAD_FOLDER'] = './uploads'\n# Ensure upload folder exists\nos.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)\n# --- Database setup ---\nconn = sqlite3.connect('test.db', check_same_thread=False)\nc = conn.cursor()\nc.execute('''CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, password TEXT)''')\nc.execute(\"INSERT OR IGNORE INTO users (id, username, password) VALUES (1, 'admin', 'admin')\")\nconn.commit()",
+        "detail": "test2.test",
+        "documentation": {}
+    },
+    {
+        "label": "app.config['UPLOAD_FOLDER']",
+        "kind": 5,
+        "importPath": "test2.test",
+        "description": "test2.test",
+        "peekOfCode": "app.config['UPLOAD_FOLDER'] = './uploads'\n# Ensure upload folder exists\nos.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)\n# --- Database setup ---\nconn = sqlite3.connect('test.db', check_same_thread=False)\nc = conn.cursor()\nc.execute('''CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, password TEXT)''')\nc.execute(\"INSERT OR IGNORE INTO users (id, username, password) VALUES (1, 'admin', 'admin')\")\nconn.commit()\n# --- Routes ---",
+        "detail": "test2.test",
+        "documentation": {}
+    },
+    {
+        "label": "conn",
+        "kind": 5,
+        "importPath": "test2.test",
+        "description": "test2.test",
+        "peekOfCode": "conn = sqlite3.connect('test.db', check_same_thread=False)\nc = conn.cursor()\nc.execute('''CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, password TEXT)''')\nc.execute(\"INSERT OR IGNORE INTO users (id, username, password) VALUES (1, 'admin', 'admin')\")\nconn.commit()\n# --- Routes ---\n# 1. SQL Injection\n@app.route('/login', methods=['GET', 'POST'])\ndef login():\n    if request.method == 'POST':",
+        "detail": "test2.test",
+        "documentation": {}
+    },
+    {
+        "label": "c",
+        "kind": 5,
+        "importPath": "test2.test",
+        "description": "test2.test",
+        "peekOfCode": "c = conn.cursor()\nc.execute('''CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, password TEXT)''')\nc.execute(\"INSERT OR IGNORE INTO users (id, username, password) VALUES (1, 'admin', 'admin')\")\nconn.commit()\n# --- Routes ---\n# 1. SQL Injection\n@app.route('/login', methods=['GET', 'POST'])\ndef login():\n    if request.method == 'POST':\n        username = request.form['username']",
+        "detail": "test2.test",
         "documentation": {}
     }
 ]

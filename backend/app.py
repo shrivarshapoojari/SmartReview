@@ -21,6 +21,7 @@ GITHUB_PRIVATE_KEY = os.getenv("GITHUB_PRIVATE_KEY")
 GITHUB_WEBHOOK_SECRET = os.getenv("GITHUB_WEBHOOK_SECRET")
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
 GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
+GITHUB_APP_NAME = os.getenv("GITHUB_APP_NAME", "smartreview")  # Default fallback
 
 
 def get_github_app_token():
@@ -137,7 +138,7 @@ def run_analysis(repo_name, pr_number, installation_token):
 @app.route('/install')
 def install_app():
     """Redirect to GitHub App installation"""
-    github_url = f"https://github.com/apps/smartreview/installations/new"
+    github_url = f"https://github.com/apps/{GITHUB_APP_NAME}/installations/new"
     return redirect(github_url)
 
 @app.route('/github/callback')
