@@ -130,9 +130,8 @@ def run_analysis(repo_name, pr_number, installation_token):
         else:
             del os.environ['GITHUB_TOKEN']
 
-        print(f"Analysis completed for {repo_name} PR #{pr_number}")
     except Exception as e:
-        print(f"Error analyzing {repo_name} PR #{pr_number}: {str(e)}")
+        pass
 
 @app.route('/install')
 def install_app():

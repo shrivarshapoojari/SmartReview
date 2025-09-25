@@ -734,7 +734,7 @@
         "kind": 6,
         "importPath": "backend.code_review_agent",
         "description": "backend.code_review_agent",
-        "peekOfCode": "class CodeReviewState(TypedDict):\n    repo_name: str\n    pr_number: int\n    code_changes: List[str]\n    feedback: List[str]\n# Set up Groq LLM\nllm = ChatGroq(\n    model=\"openai/gpt-oss-20b\",\n )\n# Fetch PR changes",
+        "peekOfCode": "class CodeReviewState(TypedDict):\n    repo_name: str\n    pr_number: int\n    code_changes: List[str]\n    feedback: List[str]\n# Set up Groq LLM\nllm = ChatGroq(\n    model=\"meta-llama/llama-4-scout-17b-16e-instruct\",\n )\n# Fetch PR changes",
         "detail": "backend.code_review_agent",
         "documentation": {}
     },
@@ -779,7 +779,7 @@
         "kind": 5,
         "importPath": "backend.code_review_agent",
         "description": "backend.code_review_agent",
-        "peekOfCode": "llm = ChatGroq(\n    model=\"openai/gpt-oss-20b\",\n )\n# Fetch PR changes\ndef fetch_pr_changes(state: CodeReviewState):\n    repo_name = state[\"repo_name\"]\n    pr_number = state[\"pr_number\"]\n    g = Github(os.getenv(\"GITHUB_TOKEN\"))\n    repo = g.get_repo(repo_name)\n    pr = repo.get_pull(pr_number)",
+        "peekOfCode": "llm = ChatGroq(\n    model=\"meta-llama/llama-4-scout-17b-16e-instruct\",\n )\n# Fetch PR changes\ndef fetch_pr_changes(state: CodeReviewState):\n    repo_name = state[\"repo_name\"]\n    pr_number = state[\"pr_number\"]\n    g = Github(os.getenv(\"GITHUB_TOKEN\"))\n    repo = g.get_repo(repo_name)\n    pr = repo.get_pull(pr_number)",
         "detail": "backend.code_review_agent",
         "documentation": {}
     },
@@ -797,7 +797,7 @@
         "kind": 5,
         "importPath": "backend.code_review_agent",
         "description": "backend.code_review_agent",
-        "peekOfCode": "code_review_agent = graph.compile()\nif __name__ == \"__main__\":\n    import sys\n    if len(sys.argv) != 3:\n        print(\"Usage: python code_review_agent.py <repo_name> <pr_number>\")\n        sys.exit(1)\n    repo_name = sys.argv[1]\n    pr_number = int(sys.argv[2])\n    result = code_review_agent.invoke({\n        \"repo_name\": repo_name,",
+        "peekOfCode": "code_review_agent = graph.compile()\nif __name__ == \"__main__\":\n    import sys\n    if len(sys.argv) != 3:\n        sys.exit(1)\n    repo_name = sys.argv[1]\n    pr_number = int(sys.argv[2])\n    result = code_review_agent.invoke({\n        \"repo_name\": repo_name,\n        \"pr_number\": pr_number,",
         "detail": "backend.code_review_agent",
         "documentation": {}
     },

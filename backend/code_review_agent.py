@@ -18,7 +18,7 @@ class CodeReviewState(TypedDict):
 
 # Set up Groq LLM
 llm = ChatGroq(
-    model="openai/gpt-oss-20b",
+    model="meta-llama/llama-4-scout-17b-16e-instruct",
  )
 # Fetch PR changes
 def fetch_pr_changes(state: CodeReviewState):
@@ -98,7 +98,6 @@ code_review_agent = graph.compile()
 if __name__ == "__main__":
     import sys
     if len(sys.argv) != 3:
-        print("Usage: python code_review_agent.py <repo_name> <pr_number>")
         sys.exit(1)
     
     repo_name = sys.argv[1]
@@ -110,5 +109,3 @@ if __name__ == "__main__":
         "code_changes": [],
         "feedback": []
     })
-    
-    print("Code review completed and posted to GitHub!")
