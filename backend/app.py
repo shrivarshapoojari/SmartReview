@@ -151,7 +151,7 @@ def install_app():
 
 @app.route('/auth/login')
 def auth_login():
-    client_id = GITHUB_CLIENT_ID
+    client_id = GITHUB_APP_ID  # Use GitHub App's client ID for OAuth to authorize app access
     if not client_id:
         return jsonify({'error': 'OAuth not configured'}), 500
     github_auth_url = f"https://github.com/login/oauth/authorize?client_id={client_id}&scope=user:email"
@@ -160,11 +160,9 @@ def auth_login():
 @app.route('/auth/callback')
 def auth_callback():
     code = request.args.get('code')
-    client_id = GITHUB_CLIENT_ID   
-    client_secret = GITHUB_CLIENT_SECRET   
-    print(f"Callback received: code={code}, client_id={client_id}")
+    client_id = GITHUB_APP_ID  # Use GitHub App's client ID
+    client_secret = GITHUB_CLIENT_SECRET  # Use the app's client secret
     if not code or not client_id or not client_secret:
-        print("Missing code, client_id, or client_secret")
         return redirect(f"{FRONTEND_URL}/?auth=0")
     # Exchange code for token
     token_response = requests.post('https://github.com/login/oauth/access_token', 
@@ -175,15 +173,12 @@ def auth_callback():
             'code': code
         })
     token_data = token_response.json()
-    print(f"Token response: {token_data}")
     access_token = token_data.get('access_token')
     if not access_token:
-        print("No access_token in response")
         return redirect(f"{FRONTEND_URL}/?auth=0")
     # Get user profile
     user_response = requests.get('https://api.github.com/user', headers={'Authorization': f'token {access_token}'})
     profile = user_response.json()
-    print(f"User profile: {profile}")
     # Create JWT
     jwt_token = jwt.encode({'access_token': access_token, 'user': profile}, JWT_SECRET, algorithm='HS256')
     # Redirect to frontend with user info
@@ -191,7 +186,6 @@ def auth_callback():
     login = quote_plus(profile.get('login') or '')
     avatar = quote_plus(profile.get('avatar_url') or '')
     redirect_url = f"{FRONTEND_URL}/?auth=1&name={name}&login={login}&avatar={avatar}"
-    print(f"Redirecting to: {redirect_url}")
     response = redirect(redirect_url)
     response.set_cookie('jwt', jwt_token, httponly=True, secure=False)  # secure=True in production
     return response
@@ -205,36 +199,49 @@ def auth_logout():
 @app.route('/api/installations')
 def get_installations():
     jwt_token = request.cookies.get('jwt')
-    print(f"JWT token: {jwt_token}")
     if not jwt_token:
-        print("No JWT token")
         return jsonify({'error': 'Not authenticated'}), 401
     try:
         decoded = jwt.decode(jwt_token, JWT_SECRET, algorithms=['HS256'])
         access_token = decoded['access_token']
-        print(f"Access token: {access_token[:10]}...")
     except jwt.ExpiredSignatureError:
-        print("Token expired")
         return jsonify({'error': 'Token expired'}), 401
-    except jwt.InvalidTokenError as e:
-        print(f"Invalid token: {e}")
+    except jwt.InvalidTokenError:
         return jsonify({'error': 'Invalid token'}), 401
     # Get user's installations
     url = 'https://api.github.com/user/installations'
     headers = {'Authorization': f'token {access_token}', 'Accept': 'application/vnd.github.v3+json'}
-    print(f"Calling GitHub API: {url}")
     response = requests.get(url, headers=headers)
-    print(f"GitHub response status: {response.status_code}")
     if response.status_code != 200:
-        print(f"GitHub error: {response.text}")
         return jsonify({'error': 'Failed to fetch installations'}), 500
     data = response.json()
     installations = data['installations']
-    print(f"Installations: {len(installations)}")
     # Filter to our app
     our_installations = [inst for inst in installations if inst['app_id'] == int(GITHUB_APP_ID)]
-    print(f"Our installations: {len(our_installations)}")
-    return jsonify({'installations': our_installations})
+    # For each installation, get the repos
+    result = []
+    for inst in our_installations:
+        installation_id = inst['id']
+        try:
+            token = get_installation_token(installation_id)
+            repo_url = f"https://api.github.com/installation/repositories"
+            repo_headers = {
+                'Authorization': f'token {token}',
+                'Accept': 'application/vnd.github.v3+json'
+            }
+            repo_response = requests.get(repo_url, headers=repo_headers)
+            if repo_response.status_code == 200:
+                repos_data = repo_response.json()
+                repos = repos_data['repositories']
+                result.append({
+                    'id': installation_id,
+                    'account': inst['account'],
+                    'repos': [{'name': repo['name'], 'full_name': repo['full_name']} for repo in repos]
+                })
+        except Exception as e:
+            # Skip if can't get repos
+            pass
+    return jsonify({'installations': result})
 
 @app.route('/github/callback')
 def github_callback():

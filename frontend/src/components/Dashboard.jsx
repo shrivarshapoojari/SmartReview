@@ -58,7 +58,14 @@ function Dashboard() {
             {installations.map(inst => (
               <li key={inst.id} className="bg-white p-4 rounded shadow">
                 <div className="font-medium">Installed on {inst.account.login}'s repositories</div>
-                <div className="text-sm text-gray-600">Repository selection: {inst.repository_selection}</div>
+                <div className="text-sm text-gray-600">
+                  Repositories:
+                  <ul className="list-disc list-inside mt-2">
+                    {inst.repos.map(repo => (
+                      <li key={repo.full_name}>{repo.full_name}</li>
+                    ))}
+                  </ul>
+                </div>
               </li>
             ))}
           </ul>
