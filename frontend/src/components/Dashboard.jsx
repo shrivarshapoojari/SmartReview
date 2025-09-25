@@ -4,19 +4,23 @@ import axios from 'axios';
 function Dashboard() {
   const [installations, setInstallations] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const getCookie = (name) => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-  };
-
-  const [user, setUser] = useState(() => {
-    const userCookie = getCookie('user');
-    return userCookie ? JSON.parse(decodeURIComponent(userCookie)) : null;
-  });
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/user');
+        setUser(response.data);
+      } catch (err) {
+        setUser(null);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    if (!user) return; // Wait for user
+
     const fetchInstallations = async () => {
       try {
         const response = await axios.get('http://localhost:5000/api/installations');
@@ -35,7 +39,11 @@ function Dashboard() {
     };
 
     fetchInstallations();
-  }, []);
+  }, [user]);
+
+  if (!user) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

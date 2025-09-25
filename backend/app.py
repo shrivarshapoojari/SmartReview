@@ -5,6 +5,7 @@ import os
 import jwt
 import time
 import requests
+import json
 from dotenv import load_dotenv
 from code_review_agent import code_review_agent
 import threading
@@ -269,6 +270,20 @@ def health():
 def link_repo():
     # For GitHub App, linking is done through installation
     return jsonify({'message': 'Please install the GitHub App to link repositories automatically'}), 200
+
+@app.route('/api/user')
+def get_user():
+    jwt_token = request.cookies.get('jwt')
+    if not jwt_token:
+        return jsonify({'error': 'Not authenticated'}), 401
+    try:
+        decoded = jwt.decode(jwt_token, JWT_SECRET, algorithms=['HS256'])
+        user = decoded['user']
+        return jsonify(user)
+    except jwt.ExpiredSignatureError:
+        return jsonify({'error': 'Token expired'}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({'error': 'Invalid token'}), 401
 
 @app.after_request
 def after_request(response):
