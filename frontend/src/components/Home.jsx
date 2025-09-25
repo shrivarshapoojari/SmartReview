@@ -109,6 +109,7 @@ function Home() {
                   <div className="font-medium">{user.name || user.login}</div>
                   <div className="text-xs text-gray-500">{user.login}</div>
                 </div>
+                <a href="/dashboard" className="text-blue-600 hover:underline">Dashboard</a>
                 <button onClick={signOut} className="ml-3 bg-red-50 text-red-700 px-3 py-1 rounded">Sign out</button>
               </div>
             ) : (

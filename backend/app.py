@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, redirect, session
+from flask import Flask, request, jsonify, redirect
 import hmac
 import hashlib
 import os
@@ -14,7 +14,7 @@ from urllib.parse import quote_plus
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
+JWT_SECRET = os.getenv("JWT_SECRET", "dev-jwt-secret")
 
 # GitHub App configuration
 GITHUB_APP_ID = os.getenv("GITHUB_APP_ID")
@@ -152,62 +152,74 @@ def install_app():
 
 @app.route('/auth/login')
 def auth_login():
-    """Start GitHub OAuth login flow by redirecting to GitHub authorize URL"""
-    # prefer separate OAuth app creds if provided to avoid colliding with GitHub App credentials
-    oauth_client_id = GITHUB_OAUTH_CLIENT_ID or GITHUB_CLIENT_ID
-    if not oauth_client_id:
-        return jsonify({'error': 'GITHUB_OAUTH_CLIENT_ID or GITHUB_CLIENT_ID must be configured'}), 500
-
-    redirect_uri = f"{BACKEND_URL}/auth/callback"
-    state = quote_plus(redirect_uri)
-    params = f"client_id={oauth_client_id}&redirect_uri={quote_plus(redirect_uri)}&scope=read:user user:email&state={state}"
-    authorize_url = f"https://github.com/login/oauth/authorize?{params}"
-    return redirect(authorize_url)
-
+    client_id = GITHUB_OAUTH_CLIENT_ID or GITHUB_CLIENT_ID
+    if not client_id:
+        return jsonify({'error': 'OAuth not configured'}), 500
+    github_auth_url = f"https://github.com/login/oauth/authorize?client_id={client_id}&scope=user:email"
+    return redirect(github_auth_url)
 
 @app.route('/auth/callback')
 def auth_callback():
-    """Handle GitHub OAuth callback, exchange code for token, fetch profile, then redirect to frontend with basic user info"""
     code = request.args.get('code')
-    if not code:
-        return redirect(FRONTEND_URL + '/?auth=0&error=missing_code')
-
-    token_url = 'https://github.com/login/oauth/access_token'
-    oauth_client_id = GITHUB_OAUTH_CLIENT_ID or GITHUB_CLIENT_ID
-    oauth_client_secret = GITHUB_OAUTH_CLIENT_SECRET or GITHUB_CLIENT_SECRET
-    data = {
-        'client_id': oauth_client_id,
-        'client_secret': oauth_client_secret,
-        'code': code
-    }
-    headers = {'Accept': 'application/json'}
-    resp = requests.post(token_url, data=data, headers=headers)
-    if resp.status_code != 200:
-        return redirect(FRONTEND_URL + '/?auth=0&error=token_exchange_failed')
-
-    token_json = resp.json()
-    access_token = token_json.get('access_token')
+    client_id = GITHUB_OAUTH_CLIENT_ID or GITHUB_CLIENT_ID
+    client_secret = GITHUB_OAUTH_CLIENT_SECRET or GITHUB_CLIENT_SECRET
+    if not code or not client_id or not client_secret:
+        return redirect(f"{FRONTEND_URL}/?auth=0")
+    # Exchange code for token
+    token_response = requests.post('https://github.com/login/oauth/access_token', 
+        headers={'Accept': 'application/json'},
+        data={
+            'client_id': client_id,
+            'client_secret': client_secret,
+            'code': code
+        })
+    token_data = token_response.json()
+    access_token = token_data.get('access_token')
     if not access_token:
-        return redirect(FRONTEND_URL + '/?auth=0&error=no_access_token')
-
-    # Fetch user profile
-    user_resp = requests.get('https://api.github.com/user', headers={'Authorization': f'token {access_token}', 'Accept': 'application/vnd.github.v3+json'})
-    if user_resp.status_code != 200:
-        return redirect(FRONTEND_URL + '/?auth=0&error=failed_fetch_user')
-
-    profile = user_resp.json()
-    # build redirect with basic info (URL-encoded)
+        return redirect(f"{FRONTEND_URL}/?auth=0")
+    # Get user profile
+    user_response = requests.get('https://api.github.com/user', headers={'Authorization': f'token {access_token}'})
+    profile = user_response.json()
+    # Create JWT
+    jwt_token = jwt.encode({'access_token': access_token, 'user': profile}, JWT_SECRET, algorithm='HS256')
+    # Redirect to frontend with user info
     name = quote_plus(profile.get('name') or '')
     login = quote_plus(profile.get('login') or '')
     avatar = quote_plus(profile.get('avatar_url') or '')
     redirect_url = f"{FRONTEND_URL}/?auth=1&name={name}&login={login}&avatar={avatar}"
-    return redirect(redirect_url)
-
+    response = redirect(redirect_url)
+    response.set_cookie('jwt', jwt_token, httponly=True, secure=False)  # secure=True in production
+    return response
 
 @app.route('/auth/logout', methods=['POST'])
 def auth_logout():
-    # For this simple flow we don't maintain server-side sessions; frontend can clear local state
-    return jsonify({'ok': True}), 200
+    response = jsonify({'ok': True})
+    response.set_cookie('jwt', '', expires=0)
+    return response
+
+@app.route('/api/installations')
+def get_installations():
+    jwt_token = request.cookies.get('jwt')
+    if not jwt_token:
+        return jsonify({'error': 'Not authenticated'}), 401
+    try:
+        decoded = jwt.decode(jwt_token, JWT_SECRET, algorithms=['HS256'])
+        access_token = decoded['access_token']
+    except jwt.ExpiredSignatureError:
+        return jsonify({'error': 'Token expired'}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({'error': 'Invalid token'}), 401
+    # Get user's installations
+    url = 'https://api.github.com/user/installations'
+    headers = {'Authorization': f'token {access_token}', 'Accept': 'application/vnd.github.v3+json'}
+    response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        return jsonify({'error': 'Failed to fetch installations'}), 500
+    data = response.json()
+    installations = data['installations']
+    # Filter to our app
+    our_installations = [inst for inst in installations if inst['app_id'] == int(GITHUB_APP_ID)]
+    return jsonify({'installations': our_installations})
 
 @app.route('/github/callback')
 def github_callback():
@@ -257,6 +269,14 @@ def health():
 def link_repo():
     # For GitHub App, linking is done through installation
     return jsonify({'message': 'Please install the GitHub App to link repositories automatically'}), 200
+
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173')
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
