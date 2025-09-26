@@ -121,21 +121,4 @@ GITHUB_PRIVATE_KEY=your_production_private_key
 4. **AI Review**: Groq LLM provides structured feedback
 5. **Comment**: Professional review posted on PR
 
-## Security
-
-- Webhook signatures verified using HMAC-SHA256
-- GitHub App authentication with JWT
-- Installation-specific access tokens
-- No persistent storage of sensitive data
-
-## Contributing
-
-1. Fork the repository
-2. Create feature branch
-3. Make changes
-4. Test thoroughly
-5. Submit pull request
-
-## License
-
-MIT License - see LICENSE file for details
+ 
