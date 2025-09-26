@@ -151,7 +151,7 @@ def install_app():
 
 @app.route('/auth/login')
 def auth_login():
-    client_id = GITHUB_APP_ID  # Use GitHub App's client ID for OAuth to authorize app access
+    client_id = GITHUB_CLIENT_ID  # Use GitHub App's client ID for OAuth to authorize app access
     if not client_id:
         return jsonify({'error': 'OAuth not configured'}), 500
     github_auth_url = f"https://github.com/login/oauth/authorize?client_id={client_id}&scope=user:email"
