@@ -12,7 +12,7 @@ function Home() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/user');
+        const response = await axios.get(`${process.env.SERVER_URL}/api/user`);
         setUser(response.data);
       } catch (err) {
         setUser(null);
@@ -40,7 +40,7 @@ function Home() {
           // Refetch user after login
           const fetchUser = async () => {
             try {
-              const response = await axios.get('http://localhost:5000/api/user');
+              const response = await axios.get(`${process.env.SERVER_URL}/api/user`);
               setUser(response.data);
             } catch (err) {
               setUser(null);
@@ -69,17 +69,17 @@ function Home() {
 
     setInstalling(true);
     // Redirect to GitHub App installation
-    window.location.href = 'http://localhost:5000/install';
+    window.location.href = `${process.env.SERVER_URL}/install`;
   };
 
   const signInWithGitHub = () => {
     // start OAuth flow
-    window.location.href = 'http://localhost:5000/auth/login';
+    window.location.href = `${process.env.SERVER_URL}/auth/login`;
   };
 
   const signOut = async () => {
     try {
-      await fetch('http://localhost:5000/auth/logout', { method: 'POST' });
+      await fetch(`${process.env.SERVER_URL}/auth/logout`, { method: 'POST' });
     } catch (e) {}
     setUser(null);
   };

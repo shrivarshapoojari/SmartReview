@@ -5,7 +5,7 @@ function Login() {
 
   const signInWithGitHub = () => {
     // start OAuth flow
-    window.location.href = 'http://localhost:5000/auth/login';
+    window.location.href = `${process.env.SERVER_URL}/auth/login`;
   };
 
   return (
