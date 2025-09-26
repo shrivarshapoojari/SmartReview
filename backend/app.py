@@ -160,8 +160,8 @@ def auth_login():
 @app.route('/auth/callback')
 def auth_callback():
     code = request.args.get('code')
-    client_id = GITHUB_APP_ID  # Use GitHub App's client ID
-    client_secret = GITHUB_CLIENT_SECRET  # Use the app's client secret
+    client_id = GITHUB_CLIENT_ID  
+    client_secret = GITHUB_CLIENT_SECRET   
     if not code or not client_id or not client_secret:
         return redirect(f"{FRONTEND_URL}/?auth=0")
     # Exchange code for token
