@@ -9,7 +9,7 @@ function Dashboard() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.get(`${process.env.SERVER_URL}/api/user`);
+        const response = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/user`);
         setUser(response.data);
       } catch (err) {
         setUser(null);
@@ -23,7 +23,7 @@ function Dashboard() {
 
     const fetchInstallations = async () => {
       try {
-        const response = await axios.get(`${process.env.SERVER_URL}/api/installations`);
+        const response = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/installations`);
         const data = response.data;
         if (data.error) {
           alert('Error: ' + data.error);
