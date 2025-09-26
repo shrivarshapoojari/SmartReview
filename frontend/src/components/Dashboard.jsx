@@ -53,6 +53,8 @@ function Dashboard() {
     );
   }
 
+  const totalInstallations = installations.length;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <div className="container mx-auto px-6 py-12 max-w-7xl">
@@ -86,7 +88,7 @@ function Dashboard() {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-500">Total Installations</p>
-                  <p className="text-2xl font-bold text-gray-900">{installations.length}</p>
+                  <p className="text-2xl font-bold text-gray-900">{totalInstallations}</p>
                 </div>
               </div>
             </div>
@@ -137,7 +139,7 @@ function Dashboard() {
               </div>
               <div className="text-right">
                 <p className="text-sm text-gray-500">Total Installations</p>
-                <p className="text-2xl font-bold text-indigo-600">{installations.length}</p>
+                <p className="text-2xl font-bold text-indigo-600">{totalInstallations}</p>
               </div>
             </div>
             
