@@ -59,30 +59,7 @@ function Login() {
           </div>
         </div>
 
-        {/* Features Preview */}
-        <div className="mt-12 grid md:grid-cols-3 gap-6 text-center">
-          <div className="bg-white bg-opacity-70 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white border-opacity-20">
-            <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <span className="text-xl">🔍</span>
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Security</h3>
-            <p className="text-sm text-gray-600">Detect vulnerabilities</p>
-          </div>
-          <div className="bg-white bg-opacity-70 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white border-opacity-20">
-            <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <span className="text-xl">⚡</span>
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Performance</h3>
-            <p className="text-sm text-gray-600">Optimize code speed</p>
-          </div>
-          <div className="bg-white bg-opacity-70 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white border-opacity-20">
-            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <span className="text-xl">📝</span>
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Quality</h3>
-            <p className="text-sm text-gray-600">Improve code standards</p>
-          </div>
-        </div>
+      
       </div>
     </div>
   );
