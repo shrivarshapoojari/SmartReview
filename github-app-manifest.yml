@@ -1,6 +1,7 @@
-name: SmartReview
+name: Smart Review-PR Buddy
 description: AI-powered code review automation
-homepage_url: https://your-deployed-url.com
+homepage_url: https://smartreview.shrivarshapoojary.in
+setup_url: https://smartreview.onrender.com/github/callback
 permissions:
   contents: read
   pull_requests: write
