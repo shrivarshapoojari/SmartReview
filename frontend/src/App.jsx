@@ -8,6 +8,15 @@ import axios from 'axios';
 // Set default axios config to send cookies
 axios.defaults.withCredentials = true;
 
+// Add JWT to requests if available
+axios.interceptors.request.use((config) => {
+  const jwt = localStorage.getItem('jwt');
+  if (jwt) {
+    config.headers.Authorization = `Bearer ${jwt}`;
+  }
+  return config;
+});
+
 function App() {
   return (
     <Router>

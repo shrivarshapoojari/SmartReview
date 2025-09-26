@@ -185,9 +185,10 @@ def auth_callback():
     name = quote_plus(profile.get('name') or '')
     login = quote_plus(profile.get('login') or '')
     avatar = quote_plus(profile.get('avatar_url') or '')
-    redirect_url = f"{FRONTEND_URL}/?auth=1&name={name}&login={login}&avatar={avatar}"
+    jwt_param = quote_plus(jwt_token)
+    redirect_url = f"{FRONTEND_URL}/?auth=1&name={name}&login={login}&avatar={avatar}&jwt={jwt_param}"
     response = redirect(redirect_url)
-    response.set_cookie('jwt', jwt_token, httponly=True, secure=False)  # secure=True in production
+    response.set_cookie('jwt', jwt_token, httponly=True, secure=True)  # secure=True for HTTPS production
     return response
 
 @app.route('/auth/logout', methods=['POST'])
@@ -198,7 +199,16 @@ def auth_logout():
 
 @app.route('/api/installations')
 def get_installations():
-    jwt_token = request.cookies.get('jwt')
+    jwt_token = None
+    
+    # Check Authorization header first
+    auth_header = request.headers.get('Authorization')
+    if auth_header and auth_header.startswith('Bearer '):
+        jwt_token = auth_header.split(' ')[1]
+    else:
+        # Fallback to cookie
+        jwt_token = request.cookies.get('jwt')
+    
     if not jwt_token:
         return jsonify({'error': 'Not authenticated'}), 401
     try:
@@ -294,7 +304,16 @@ def link_repo():
 
 @app.route('/api/user')
 def get_user():
-    jwt_token = request.cookies.get('jwt')
+    jwt_token = None
+    
+    # Check Authorization header first
+    auth_header = request.headers.get('Authorization')
+    if auth_header and auth_header.startswith('Bearer '):
+        jwt_token = auth_header.split(' ')[1]
+    else:
+        # Fallback to cookie
+        jwt_token = request.cookies.get('jwt')
+    
     if not jwt_token:
         return jsonify({'error': 'Not authenticated'}), 401
     try:

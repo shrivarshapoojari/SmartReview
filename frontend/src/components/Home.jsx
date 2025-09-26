@@ -37,6 +37,11 @@ function Home() {
       if (params.has('auth')) {
         const authOk = params.get('auth') === '1';
         if (authOk) {
+          // Store JWT if provided
+          if (params.has('jwt')) {
+            const jwt = params.get('jwt');
+            localStorage.setItem('jwt', jwt);
+          }
           // Refetch user after login
           const fetchUser = async () => {
             try {
@@ -81,6 +86,7 @@ function Home() {
     try {
       await fetch(`${import.meta.env.VITE_SERVER_URL}/auth/logout`, { method: 'POST' });
     } catch (e) {}
+    localStorage.removeItem('jwt');
     setUser(null);
   };
 

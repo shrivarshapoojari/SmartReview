@@ -9,7 +9,7 @@ const ProtectedRoute = ({ children }) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/user');
+        const response = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/user`);
         setUser(response.data);
       } catch (err) {
         setUser(null);
