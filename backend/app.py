@@ -499,7 +499,17 @@ def get_setup_status():
 
 @app.after_request
 def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', 'https://smartreview.shrivarshapoojary.in')
+    # Allow both development and production origins
+    allowed_origins = [
+        'https://smartreview.shrivarshapoojary.in',
+        'http://localhost:5173',
+        'http://127.0.0.1:5173'
+    ]
+    
+    origin = request.headers.get('Origin')
+    if origin in allowed_origins:
+        response.headers.add('Access-Control-Allow-Origin', origin)
+    
     response.headers.add('Access-Control-Allow-Credentials', 'true')
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
