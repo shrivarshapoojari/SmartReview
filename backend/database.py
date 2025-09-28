@@ -24,14 +24,7 @@ def init_db(app):
     """Initialize database connection"""
     mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017/smartreview")
     app.config["MONGO_URI"] = mongo_uri
-    try:
-        mongo.init_app(app)
-        # Test the connection
-        mongo.db.command('ping')
-        logging.info("MongoDB connected successfully")
-    except Exception as e:
-        logging.error(f"Failed to connect to MongoDB: {e}")
-        raise
+    mongo.init_app(app)
 
 def encrypt_api_key(api_key):
     """Encrypt API key"""
@@ -48,12 +41,16 @@ class User:
         if mongo.db is None:
             logging.error("Database not initialized - cannot create/update user")
             raise Exception("Database not initialized")
-        encrypted_key = encrypt_api_key(groq_api_key)
-        mongo.db.users.update_one(
-            {"github_id": github_id},
-            {"$set": {"groq_api_key": encrypted_key}},
-            upsert=True
-        )
+        try:
+            encrypted_key = encrypt_api_key(groq_api_key)
+            mongo.db.users.update_one(
+                {"github_id": github_id},
+                {"$set": {"groq_api_key": encrypted_key}},
+                upsert=True
+            )
+        except Exception as e:
+            logging.error(f"Failed to save API key for user {github_id}: {e}")
+            raise
 
     @staticmethod
     def get_by_github_id(github_id):
@@ -61,7 +58,11 @@ class User:
         if mongo.db is None:
             logging.error("Database not initialized - cannot get user by GitHub ID")
             return None
-        return mongo.db.users.find_one({"github_id": github_id})
+        try:
+            return mongo.db.users.find_one({"github_id": github_id})
+        except Exception as e:
+            logging.error(f"Failed to get user {github_id}: {e}")
+            return None
 
     @staticmethod
     def has_api_key(github_id):
@@ -69,8 +70,12 @@ class User:
         if mongo.db is None:
             logging.error("Database not initialized - cannot check API key for user")
             return False
-        user = User.get_by_github_id(github_id)
-        return user is not None and "groq_api_key" in user
+        try:
+            user = User.get_by_github_id(github_id)
+            return user is not None and "groq_api_key" in user
+        except Exception as e:
+            logging.error(f"Failed to check API key for user {github_id}: {e}")
+            return False
 
     @staticmethod
     def get_decrypted_api_key(github_id):
@@ -78,7 +83,11 @@ class User:
         if mongo.db is None:
             logging.error("Database not initialized - cannot get decrypted API key for user")
             return None
-        user = User.get_by_github_id(github_id)
-        if user and "groq_api_key" in user:
-            return decrypt_api_key(user["groq_api_key"])
-        return None
+        try:
+            user = User.get_by_github_id(github_id)
+            if user and "groq_api_key" in user:
+                return decrypt_api_key(user["groq_api_key"])
+            return None
+        except Exception as e:
+            logging.error(f"Failed to get decrypted API key for user {github_id}: {e}")
+            return None

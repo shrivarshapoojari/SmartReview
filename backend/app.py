@@ -25,12 +25,7 @@ app = Flask(__name__)
 JWT_SECRET = os.getenv("JWT_SECRET", "dev-jwt-secret")
 
 # Initialize database
-try:
-    init_db(app)
-    app.logger.info("Database initialized successfully")
-except Exception as e:
-    app.logger.error(f"Failed to initialize database: {e}")
-    raise
+init_db(app)
 
 # GitHub App configuration
 GITHUB_APP_ID = os.getenv("GITHUB_APP_ID")
