@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import ApiKeyForm from './ApiKeyForm';
+import ApiKeySuccess from './ApiKeySuccess';
+import DeleteConfirmationDialog from './DeleteConfirmationDialog';
 
 function ApiKeySetup({ user, onSetupComplete }) {
   const [apiKey, setApiKey] = useState('');
@@ -25,91 +28,6 @@ function ApiKeySetup({ user, onSetupComplete }) {
       console.error('Failed to check API key status:', err);
     } finally {
       setChecking(false);
-    }
-  };
-
-  const validateApiKey = (key) => {
-    if (!key || !key.trim()) {
-      return 'Please enter your Groq API key';
-    }
-
-    const trimmedKey = key.trim();
-
-    // Check if it starts with "gsk_"
-    if (!trimmedKey.startsWith('gsk_')) {
-      return 'Invalid API key format. Groq API keys must start with "gsk_"';
-    }
-
-    // Check minimum length (Groq keys are typically 50+ characters)
-    if (trimmedKey.length < 20) {
-      return 'API key appears to be too short. Please check your key from Groq Console';
-    }
-
-    // Check maximum length (reasonable upper bound)
-    if (trimmedKey.length > 200) {
-      return 'API key appears to be too long. Please check your key from Groq Console';
-    }
-
-    // Check for valid characters (alphanumeric, underscores, hyphens)
-    const validKeyPattern = /^gsk_[a-zA-Z0-9_-]+$/;
-    if (!validKeyPattern.test(trimmedKey)) {
-      return 'API key contains invalid characters. Only letters, numbers, underscores, and hyphens are allowed';
-    }
-
-    // Check if it looks like a real Groq key (basic pattern check)
-    // Groq keys typically follow: gsk_ followed by a mix of letters, numbers, underscores, hyphens
-    const groqKeyPattern = /^gsk_[a-zA-Z0-9_-]{40,}$/;
-    if (!groqKeyPattern.test(trimmedKey)) {
-      return 'API key format appears incorrect. Please verify you copied the complete key from Groq Console';
-    }
-
-    return null; // Valid
-  };
-
-  const handleApiKeyChange = (e) => {
-    const value = e.target.value;
-    setApiKey(value);
-    
-    // Real-time validation for immediate feedback
-    if (value.trim()) {
-      const validation = validateApiKey(value);
-      setValidationError(validation);
-    } else {
-      setValidationError('');
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    const currentValidationError = validateApiKey(apiKey);
-    if (currentValidationError) {
-      toast.error(currentValidationError);
-      return;
-    }
-
-    setSaving(true);
-
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_SERVER_URL}/api/setup-key`,
-        { api_key: apiKey.trim() },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('jwt')}`
-          }
-        }
-      );
-
-      toast.success('API key saved successfully!');
-      setHasApiKey(true);
-      setApiKey('');
-      onSetupComplete && onSetupComplete();
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to save API key');
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -141,6 +59,10 @@ function ApiKeySetup({ user, onSetupComplete }) {
     }
   };
 
+  const handleUpdateKey = () => {
+    setHasApiKey(false);
+  };
+
   if (checking) {
     return (
       <div className="bg-white rounded-3xl p-12 mb-12 shadow-2xl border border-gray-100">
@@ -154,279 +76,40 @@ function ApiKeySetup({ user, onSetupComplete }) {
 
   if (hasApiKey) {
     return (
-      <div className="bg-green-50 border border-green-200 rounded-3xl p-12 mb-12 shadow-xl">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-green-500 rounded-full mb-6 shadow-lg">
-            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h3 className="text-3xl font-bold text-green-800 mb-4">
-            Setup Complete!
-          </h3>
-          <p className="text-green-700 mb-6 text-lg">
-            Your Groq API key is configured. You can now install SmartReview on your repositories.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button
-              onClick={() => setHasApiKey(false)}
-              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200"
-            >
-              Update API Key
-            </button>
-            <button
-              onClick={() => setShowDeleteConfirm(true)}
-              disabled={deleting}
-              className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 disabled:cursor-not-allowed"
-            >
-              {deleting ? (
-                <span className="flex items-center space-x-2">
-                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <span>Deleting...</span>
-                </span>
-              ) : (
-                'Delete API Key'
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
+      <>
+        <ApiKeySuccess
+          onUpdateKey={handleUpdateKey}
+          onDeleteKey={() => setShowDeleteConfirm(true)}
+          deleting={deleting}
+        />
+        <DeleteConfirmationDialog
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={handleDeleteApiKey}
+          deleting={deleting}
+        />
+      </>
     );
   }
 
   return (
-    <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 rounded-3xl p-12 mb-12 shadow-2xl border border-gray-100 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full -mr-16 -mt-16 opacity-50"></div>
-      <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-green-100 to-blue-100 rounded-full -ml-12 -mb-12 opacity-50"></div>
-
-      <div className="relative z-10 text-center max-w-2xl mx-auto">
-        <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-6 shadow-lg">
-            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-            </svg>
-          </div>
-          <h3 className="text-3xl font-bold text-gray-900 mb-4">
-            Configure Your API Key
-          </h3>
-          <p className="text-gray-600 mb-8 text-lg leading-relaxed">
-            To use SmartReview, you need to provide your own Groq API key. This ensures you have full control over your AI usage and costs.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="text-left">
-            <label htmlFor="apiKey" className="block text-sm font-semibold text-gray-700 mb-2">
-              Groq API Key
-            </label>
-            <input
-              type="password"
-              id="apiKey"
-              value={apiKey}
-              onChange={handleApiKeyChange}
-              placeholder="gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-lg ${
-                validationError ? 'border-red-300 bg-red-50' : 'border-gray-300'
-              }`}
-              required
-            />
-            {validationError && (
-              <p className="text-sm text-red-600 mt-1 flex items-center">
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {validationError}
-              </p>
-            )}
-            <p className="text-sm text-gray-500 mt-2">
-              Get your API key from{' '}
-              <a
-                href="https://console.groq.com/keys"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:text-blue-700 underline"
-              >
-                Groq Console
-              </a>
-            </p>
-          </div>
-
-          <button
-            type="submit"
-            disabled={saving}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 disabled:transform-none disabled:cursor-not-allowed"
-          >
-            {saving ? (
-              <span className="flex items-center justify-center space-x-3">
-                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>Saving...</span>
-              </span>
-            ) : (
-              <span>Save API Key</span>
-            )}
-          </button>
-        </form>
-
-        <div className="mt-8 bg-white bg-opacity-50 border border-gray-200 rounded-xl p-6">
-          <div className="flex items-start space-x-3">
-            <svg className="w-6 h-6 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div className="text-left">
-              <p className="text-sm text-gray-800 font-medium mb-1">Security & Privacy</p>
-              <p className="text-sm text-gray-700">
-                Your API key is encrypted and stored securely. It will only be used for code analysis on your repositories.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 rounded-3xl p-12 mb-12 shadow-2xl border border-gray-100 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full -mr-16 -mt-16 opacity-50"></div>
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-green-100 to-blue-100 rounded-full -ml-12 -mb-12 opacity-50"></div>
-
-      <div className="relative z-10 text-center max-w-2xl mx-auto">
-        <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-6 shadow-lg">
-            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-            </svg>
-          </div>
-          <h3 className="text-3xl font-bold text-gray-900 mb-4">
-            Configure Your API Key
-          </h3>
-          <p className="text-gray-600 mb-8 text-lg leading-relaxed">
-            To use SmartReview, you need to provide your own Groq API key. This ensures you have full control over your AI usage and costs.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="text-left">
-            <label htmlFor="apiKey" className="block text-sm font-semibold text-gray-700 mb-2">
-              Groq API Key
-            </label>
-            <input
-              type="password"
-              id="apiKey"
-              value={apiKey}
-              onChange={handleApiKeyChange}
-              placeholder="gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-lg ${
-                validationError ? 'border-red-300 bg-red-50' : 'border-gray-300'
-              }`}
-              required
-            />
-            {validationError && (
-              <p className="text-sm text-red-600 mt-1 flex items-center">
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {validationError}
-              </p>
-            )}
-            <p className="text-sm text-gray-500 mt-2">
-              Get your API key from{' '}
-              <a
-                href="https://console.groq.com/keys"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:text-blue-700 underline"
-              >
-                Groq Console
-              </a>
-            </p>
-          </div>
-
-          <button
-            type="submit"
-            disabled={saving}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 disabled:transform-none disabled:cursor-not-allowed"
-          >
-            {saving ? (
-              <span className="flex items-center justify-center space-x-3">
-                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>Saving...</span>
-              </span>
-            ) : (
-              <span>Save API Key</span>
-            )}
-          </button>
-        </form>
-
-        <div className="mt-8 bg-white bg-opacity-50 border border-gray-200 rounded-xl p-6">
-          <div className="flex items-start space-x-3">
-            <svg className="w-6 h-6 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div className="text-left">
-              <p className="text-sm text-gray-800 font-medium mb-1">Security & Privacy</p>
-              <p className="text-sm text-gray-700">
-                Your API key is encrypted and stored securely. It will only be used for code analysis on your repositories.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Delete Confirmation Dialog */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-gray-100">
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-6">
-                <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                Delete API Key?
-              </h3>
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                This will permanently remove your Groq API key from our system. You won't be able to use SmartReview for code reviews until you set up a new API key.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <button
-                  onClick={() => setShowDeleteConfirm(false)}
-                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-xl font-semibold transition-all duration-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleDeleteApiKey}
-                  disabled={deleting}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 disabled:cursor-not-allowed"
-                >
-                  {deleting ? (
-                    <span className="flex items-center justify-center space-x-2">
-                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <span>Deleting...</span>
-                    </span>
-                  ) : (
-                    'Delete Key'
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    <>
+      <ApiKeyForm
+        apiKey={apiKey}
+        setApiKey={setApiKey}
+        validationError={validationError}
+        setValidationError={setValidationError}
+        saving={saving}
+        setSaving={setSaving}
+        onSetupComplete={onSetupComplete}
+      />
+      <DeleteConfirmationDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDeleteApiKey}
+        deleting={deleting}
+      />
+    </>
   );
 }
 
