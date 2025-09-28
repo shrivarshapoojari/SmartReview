@@ -24,6 +24,7 @@ cipher = Fernet(ENCRYPTION_KEY.encode())
 
 def init_db(app):
     """Initialize database connection"""
+    print("init_db() function called")
     global client, db
     mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017/smartreview")
     print(f"Initializing database with URI: {mongo_uri}")
@@ -34,7 +35,7 @@ def init_db(app):
         # Send a ping to confirm a successful connection
         client.admin.command('ping')
         db = client.smartreview  # Use the smartreview database
-        print("MongoDB connected successfully!")
+        print(f"MongoDB connected successfully! db object: {db}")
         logging.info("MongoDB connected successfully")
     except Exception as e:
         print(f"Failed to connect to MongoDB: {e}")
@@ -53,6 +54,9 @@ class User:
     @staticmethod
     def create_or_update(github_id, groq_api_key):
         """Create or update user with encrypted API key"""
+        if db is None:
+            print("ERROR: Database not initialized - db is None")
+            raise Exception("Database not initialized")
         print(f"Attempting to save API key for user {github_id}")
         try:
             encrypted_key = encrypt_api_key(groq_api_key)
@@ -70,6 +74,9 @@ class User:
     @staticmethod
     def get_by_github_id(github_id):
         """Get user by GitHub ID"""
+        if db is None:
+            print("ERROR: Database not initialized - db is None")
+            return None
         print(f"Attempting to get user {github_id}")
         try:
             user = db.users.find_one({"github_id": github_id})
@@ -83,6 +90,9 @@ class User:
     @staticmethod
     def has_api_key(github_id):
         """Check if user has API key configured"""
+        if db is None:
+            print("ERROR: Database not initialized - db is None")
+            return False
         print(f"Checking if user {github_id} has API key")
         try:
             user = User.get_by_github_id(github_id)
@@ -97,6 +107,9 @@ class User:
     @staticmethod
     def get_decrypted_api_key(github_id):
         """Get decrypted API key for user"""
+        if db is None:
+            print("ERROR: Database not initialized - db is None")
+            return None
         print(f"Getting decrypted API key for user {github_id}")
         try:
             user = User.get_by_github_id(github_id)
