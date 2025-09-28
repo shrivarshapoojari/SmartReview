@@ -300,7 +300,7 @@ function Home() {
             </div>
             <button
               onClick={handleInstallApp}
-              disabled={installing || !user || (!hasApiKey && !checkingApiKey)}
+              disabled={installing || !user || checkingApiKey}
               className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold py-5 px-10 rounded-2xl text-xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 disabled:transform-none disabled:cursor-not-allowed disabled:shadow-lg mb-6"
             >
               {installing ? (
@@ -323,7 +323,7 @@ function Home() {
                   <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                   </svg>
-                  <span>Setup API Key First</span>
+                  <span>Set up API Key to Install</span>
                 </span>
               ) : (
                 <span className="flex items-center space-x-3">
