@@ -6,6 +6,8 @@ function Dashboard() {
   const [installations, setInstallations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [hasApiKey, setHasApiKey] = useState(false);
+  const [checkingApiKey, setCheckingApiKey] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -42,6 +44,25 @@ function Dashboard() {
     fetchInstallations();
   }, [user]);
 
+  useEffect(() => {
+    if (!user) return; // Wait for user
+
+    const checkApiKeyStatus = async () => {
+      setCheckingApiKey(true);
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/setup-status`);
+        setHasApiKey(response.data.has_api_key);
+      } catch (err) {
+        console.error('Failed to check API key status:', err);
+        setHasApiKey(false);
+      } finally {
+        setCheckingApiKey(false);
+      }
+    };
+
+    checkApiKeyStatus();
+  }, [user]);
+
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
@@ -53,6 +74,21 @@ function Dashboard() {
       </div>
     );
   }
+
+  const handleInstallApp = () => {
+    // Check if API key is set up
+    if (!hasApiKey) {
+      // Scroll to API key setup section
+      const apiKeySection = document.getElementById('api-key-setup');
+      if (apiKeySection) {
+        apiKeySection.scrollIntoView({ behavior: 'smooth' });
+      }
+      return;
+    }
+
+    // Redirect to GitHub App installation
+    window.location.href = `${import.meta.env.VITE_SERVER_URL}/install`;
+  };
 
   const totalInstallations = installations.length;
 
@@ -126,7 +162,7 @@ function Dashboard() {
         </div>
         
         {/* API Key Setup Section */}
-        <div className="mb-8">
+        <div id="api-key-setup" className="mb-8">
           <ApiKeySetup user={user} />
         </div>
         
@@ -169,10 +205,33 @@ function Dashboard() {
                   Install the SmartReview app on your repositories to start getting AI-powered code reviews.
                 </p>
                 <button
-                  onClick={() => window.location.href = '/'}
-                  className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1"
+                  onClick={handleInstallApp}
+                  disabled={checkingApiKey}
+                  className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 disabled:transform-none disabled:cursor-not-allowed disabled:shadow-lg"
                 >
-                  Install SmartReview
+                  {checkingApiKey ? (
+                    <span className="flex items-center space-x-3">
+                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Checking...</span>
+                    </span>
+                  ) : !hasApiKey ? (
+                    <span className="flex items-center space-x-3">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                      </svg>
+                      <span>Setup API Key First</span>
+                    </span>
+                  ) : (
+                    <span className="flex items-center space-x-3">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      <span>Install SmartReview</span>
+                    </span>
+                  )}
                 </button>
               </div>
             ) : (
