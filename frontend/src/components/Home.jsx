@@ -8,6 +8,8 @@ function Home() {
   const navigate = useNavigate();
 
   const [user, setUser] = useState(null);
+  const [hasApiKey, setHasApiKey] = useState(false);
+  const [checkingApiKey, setCheckingApiKey] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -20,6 +22,25 @@ function Home() {
     };
     fetchUser();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      checkApiKeyStatus();
+    }
+  }, [user]);
+
+  const checkApiKeyStatus = async () => {
+    setCheckingApiKey(true);
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/setup-status`);
+      setHasApiKey(response.data.has_api_key);
+    } catch (err) {
+      console.error('Failed to check API key status:', err);
+      setHasApiKey(false);
+    } finally {
+      setCheckingApiKey(false);
+    }
+  };
 
   useEffect(() => {
     try {
@@ -69,6 +90,13 @@ function Home() {
     if (!user) {
       // redirect to dedicated login page
       navigate('/login');
+      return;
+    }
+
+    // Check if API key is set up
+    if (!hasApiKey) {
+      // Redirect to dashboard to set up API key
+      navigate('/dashboard');
       return;
     }
 
@@ -227,10 +255,52 @@ function Home() {
               <p className="text-gray-600 mb-8 max-w-2xl mx-auto text-lg leading-relaxed">
                 One-click installation sets up automatic code reviews for all your repos. Get started in minutes and never miss a code issue again.
               </p>
+              
+              {/* API Key Status Message */}
+              {user && !checkingApiKey && (
+                <div className={`mb-6 p-4 rounded-xl max-w-2xl mx-auto ${hasApiKey ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'}`}>
+                  <div className="flex items-center space-x-3">
+                    {hasApiKey ? (
+                      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                      </svg>
+                    )}
+                    <div>
+                      <p className={`text-sm font-medium ${hasApiKey ? 'text-green-800' : 'text-yellow-800'}`}>
+                        {hasApiKey ? 'API Key Configured' : 'API Key Required'}
+                      </p>
+                      <p className={`text-sm ${hasApiKey ? 'text-green-700' : 'text-yellow-700'}`}>
+                        {hasApiKey 
+                          ? 'Your Groq API key is set up. You can proceed with installation.' 
+                          : 'Please set up your Groq API key in the dashboard before installing the app.'
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Show loading state while checking API key */}
+              {user && checkingApiKey && (
+                <div className="mb-6 p-4 rounded-xl max-w-2xl mx-auto bg-gray-50 border border-gray-200">
+                  <div className="flex items-center space-x-3">
+                    <svg className="animate-spin h-5 w-5 text-gray-600" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p className="text-sm text-gray-700">Checking API key status...</p>
+                  </div>
+                </div>
+              )}
+              
             </div>
             <button
               onClick={handleInstallApp}
-              disabled={installing}
+              disabled={installing || !user || (!hasApiKey && !checkingApiKey)}
               className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold py-5 px-10 rounded-2xl text-xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 disabled:transform-none disabled:cursor-not-allowed disabled:shadow-lg mb-6"
             >
               {installing ? (
@@ -240,6 +310,20 @@ function Home() {
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
                   <span>Redirecting to GitHub...</span>
+                </span>
+              ) : !user ? (
+                <span className="flex items-center space-x-3">
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                  </svg>
+                  <span>Sign In to Install</span>
+                </span>
+              ) : !hasApiKey && !checkingApiKey ? (
+                <span className="flex items-center space-x-3">
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                  </svg>
+                  <span>Setup API Key First</span>
                 </span>
               ) : (
                 <span className="flex items-center space-x-3">
