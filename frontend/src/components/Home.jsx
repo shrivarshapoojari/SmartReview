@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import ApiKeySetup from './ApiKeySetup';
 
 function Home() {
   const [installing, setInstalling] = useState(false);
@@ -8,6 +9,7 @@ function Home() {
   const navigate = useNavigate();
 
   const [user, setUser] = useState(null);
+  const [apiKeySetup, setApiKeySetup] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -69,6 +71,16 @@ function Home() {
     if (!user) {
       // redirect to dedicated login page
       navigate('/login');
+      return;
+    }
+
+    // Check if API key is set up
+    if (!apiKeySetup) {
+      // Scroll to API key setup section
+      const setupSection = document.getElementById('api-key-setup');
+      if (setupSection) {
+        setupSection.scrollIntoView({ behavior: 'smooth' });
+      }
       return;
     }
 
@@ -210,6 +222,16 @@ function Home() {
           </div>
         </div>
 
+        {/* API Key Setup Section */}
+        {user && (
+          <div id="api-key-setup">
+            <ApiKeySetup
+              user={user}
+              onSetupComplete={() => setApiKeySetup(true)}
+            />
+          </div>
+        )}
+
         {/* Install Section */}
         <div className="bg-white rounded-3xl p-12 mb-12 shadow-2xl border border-gray-100 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full -mr-16 -mt-16 opacity-50"></div>
@@ -270,38 +292,48 @@ function Home() {
         <div className="bg-white rounded-3xl p-12 shadow-2xl border border-gray-100">
           <div className="text-center mb-16">
             <h3 className="text-4xl font-bold text-gray-900 mb-4">How It Works</h3>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">Get started with SmartReview in three simple steps</p>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">Get started with SmartReview in four simple steps</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-12">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="text-center group">
               <div className="relative mb-8">
-                <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6 shadow-xl group-hover:shadow-2xl transition-all duration-300 transform group-hover:scale-110">
+                <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-xl group-hover:shadow-2xl transition-all duration-300 transform group-hover:scale-110">
                   <span className="text-3xl font-bold text-white">1</span>
                 </div>
                 <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-2 w-8 h-8 bg-blue-100 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
-              <h4 className="text-2xl font-semibold text-gray-900 mb-4">Install App</h4>
-              <p className="text-gray-600 text-lg leading-relaxed">Click install and authorize SmartReview on GitHub with just one click</p>
+              <h4 className="text-xl font-semibold text-gray-900 mb-4">Sign In</h4>
+              <p className="text-gray-600 text-sm leading-relaxed">Connect your GitHub account to get started</p>
             </div>
             <div className="text-center group">
               <div className="relative mb-8">
-                <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6 shadow-xl group-hover:shadow-2xl transition-all duration-300 transform group-hover:scale-110">
+                <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-xl group-hover:shadow-2xl transition-all duration-300 transform group-hover:scale-110">
                   <span className="text-3xl font-bold text-white">2</span>
                 </div>
                 <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-2 w-8 h-8 bg-green-100 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
-              <h4 className="text-2xl font-semibold text-gray-900 mb-4">Select Repositories</h4>
-              <p className="text-gray-600 text-lg leading-relaxed">Choose which repositories you want SmartReview to monitor and analyze</p>
+              <h4 className="text-xl font-semibold text-gray-900 mb-4">Configure API Key</h4>
+              <p className="text-gray-600 text-sm leading-relaxed">Set up your Groq API key for AI-powered reviews</p>
             </div>
             <div className="text-center group">
               <div className="relative mb-8">
-                <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6 shadow-xl group-hover:shadow-2xl transition-all duration-300 transform group-hover:scale-110">
+                <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-xl group-hover:shadow-2xl transition-all duration-300 transform group-hover:scale-110">
                   <span className="text-3xl font-bold text-white">3</span>
                 </div>
                 <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-2 w-8 h-8 bg-purple-100 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
-              <h4 className="text-2xl font-semibold text-gray-900 mb-4">Automatic Reviews</h4>
-              <p className="text-gray-600 text-lg leading-relaxed">AI analyzes every pull request automatically and provides intelligent feedback</p>
+              <h4 className="text-xl font-semibold text-gray-900 mb-4">Install App</h4>
+              <p className="text-gray-600 text-sm leading-relaxed">Authorize SmartReview on your repositories</p>
+            </div>
+            <div className="text-center group">
+              <div className="relative mb-8">
+                <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-xl group-hover:shadow-2xl transition-all duration-300 transform group-hover:scale-110">
+                  <span className="text-2xl font-bold text-white">4</span>
+                </div>
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-2 w-6 h-6 bg-orange-100 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              </div>
+              <h4 className="text-xl font-semibold text-gray-900 mb-4">Automatic Reviews</h4>
+              <p className="text-gray-600 text-sm leading-relaxed">Get AI reviews on every pull request</p>
             </div>
           </div>
           
