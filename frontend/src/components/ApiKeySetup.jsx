@@ -14,6 +14,11 @@ function ApiKeySetup({ user, onSetupComplete }) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  const handleSetupComplete = () => {
+    checkApiKeyStatus();
+    onSetupComplete && onSetupComplete();
+  };
+
   useEffect(() => {
     if (user) {
       checkApiKeyStatus();
@@ -101,7 +106,7 @@ function ApiKeySetup({ user, onSetupComplete }) {
         setValidationError={setValidationError}
         saving={saving}
         setSaving={setSaving}
-        onSetupComplete={onSetupComplete}
+        onSetupComplete={handleSetupComplete}
       />
       <DeleteConfirmationDialog
         isOpen={showDeleteConfirm}

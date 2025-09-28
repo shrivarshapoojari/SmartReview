@@ -154,7 +154,7 @@ function Dashboard() {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-500">Reviews Completed</p>
-                  <p className="text-2xl font-bold text-gray-900">—</p>
+                  <p className="text-2xl font-bold text-gray-900">{user.analysis_count || 0}</p>
                 </div>
               </div>
             </div>
