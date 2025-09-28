@@ -13,11 +13,6 @@ import threading
 import base64
 from urllib.parse import quote_plus
 from database import init_db, User
-from code_review_agent import code_review_agent
-import threading
-import base64
-from urllib.parse import quote_plus
-from database import init_db, User
 
 load_dotenv()
 
@@ -365,60 +360,72 @@ def get_user():
     except jwt.InvalidTokenError:
         return jsonify({'error': 'Invalid token'}), 401
 
-@app.route('/api/setup-key', methods=['POST'])
+@app.route('/api/setup-key', methods=['POST', 'DELETE'])
 def setup_api_key():
+    """Set up or delete user's Groq API key"""
+    if request.method == 'POST':
+        return handle_setup_api_key()
+    elif request.method == 'DELETE':
+        return handle_delete_api_key()
+
+def handle_setup_api_key():
     """Set up user's Groq API key"""
-    print("API endpoint /api/setup-key called")
+    logging.info("API endpoint /api/setup-key POST called")
     jwt_token = None
     
     # Check Authorization header first
     auth_header = request.headers.get('Authorization')
     if auth_header and auth_header.startswith('Bearer '):
         jwt_token = auth_header.split(' ')[1]
+        logging.debug("JWT token found in Authorization header")
     else:
         # Fallback to cookie
         jwt_token = request.cookies.get('jwt')
+        if jwt_token:
+            logging.debug("JWT token found in cookie")
+        else:
+            logging.warning("No JWT token found in request")
     
     if not jwt_token:
-        print("No JWT token found")
+        logging.warning("Authentication failed: No JWT token provided")
         return jsonify({'error': 'Not authenticated'}), 401
     
     try:
         decoded = jwt.decode(jwt_token, JWT_SECRET, algorithms=['HS256'])
         user = decoded['user']
         github_id = user['id']
-        print(f"Authenticated user: {github_id}")
+        logging.info(f"Authenticated user: {github_id}")
     except jwt.ExpiredSignatureError:
-        print("JWT token expired")
+        logging.warning("JWT token validation failed: Token expired")
         return jsonify({'error': 'Token expired'}), 401
     except jwt.InvalidTokenError:
-        print("Invalid JWT token")
+        logging.warning("JWT token validation failed: Invalid token")
         return jsonify({'error': 'Invalid token'}), 401
+    except Exception as e:
+        logging.error(f"JWT token validation failed: {str(e)}")
+        return jsonify({'error': 'Authentication error'}), 401
     
     # Get API key from request
     data = request.get_json()
     if not data or 'api_key' not in data:
-        print("No API key in request data")
+        logging.warning("No API key in request data")
         return jsonify({'error': 'API key is required'}), 400
     
     groq_api_key = data['api_key'].strip()
     if not groq_api_key:
-        print("API key is empty")
+        logging.warning("API key is empty")
         return jsonify({'error': 'API key cannot be empty'}), 400
     
     # Save to database
     try:
         User.create_or_update(github_id, groq_api_key)
-        print(f"API key saved successfully for user {github_id}")
         logging.info(f"API key saved successfully for user {github_id}")
         return jsonify({'message': 'API key saved successfully'}), 200
     except Exception as e:
-        print(f"Failed to save API key: {e}")
-        logging.error(f"Failed to save API key for user {github_id}: {e}")
+        logging.error(f"Failed to save API key for user {github_id}: {str(e)}")
         return jsonify({'error': 'Failed to save API key'}), 500
 
-@app.route('/api/setup-key', methods=['DELETE'])
-def delete_api_key():
+def handle_delete_api_key():
     """Delete user's Groq API key"""
     logging.info("API endpoint /api/setup-key DELETE called")
     jwt_token = None
@@ -472,36 +479,44 @@ def delete_api_key():
 @app.route('/api/setup-status', methods=['GET'])
 def get_setup_status():
     """Check if user has set up their API key"""
-    print("API endpoint /api/setup-status called")
+    logging.info("API endpoint /api/setup-status called")
     jwt_token = None
     
     # Check Authorization header first
     auth_header = request.headers.get('Authorization')
     if auth_header and auth_header.startswith('Bearer '):
         jwt_token = auth_header.split(' ')[1]
+        logging.debug("JWT token found in Authorization header")
     else:
         # Fallback to cookie
         jwt_token = request.cookies.get('jwt')
+        if jwt_token:
+            logging.debug("JWT token found in cookie")
+        else:
+            logging.warning("No JWT token found in request")
     
     if not jwt_token:
-        print("No JWT token found")
+        logging.warning("Authentication failed: No JWT token provided")
         return jsonify({'error': 'Not authenticated'}), 401
     
     try:
         decoded = jwt.decode(jwt_token, JWT_SECRET, algorithms=['HS256'])
         user = decoded['user']
         github_id = user['id']
-        print(f"Authenticated user: {github_id}")
+        logging.info(f"Authenticated user: {github_id}")
     except jwt.ExpiredSignatureError:
-        print("JWT token expired")
+        logging.warning("JWT token validation failed: Token expired")
         return jsonify({'error': 'Token expired'}), 401
     except jwt.InvalidTokenError:
-        print("Invalid JWT token")
+        logging.warning("JWT token validation failed: Invalid token")
         return jsonify({'error': 'Invalid token'}), 401
+    except Exception as e:
+        logging.error(f"JWT token validation failed: {str(e)}")
+        return jsonify({'error': 'Authentication error'}), 401
     
     # Check if user has API key
     has_key = User.has_api_key(github_id)
-    print(f"Returning has_api_key: {has_key}")
+    logging.info(f"Returning has_api_key: {has_key} for user {github_id}")
     return jsonify({'has_api_key': has_key}), 200
 
 @app.after_request
