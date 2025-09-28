@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import ApiKeySetup from './ApiKeySetup';
 
 function Dashboard() {
   const [installations, setInstallations] = useState([]);
@@ -122,6 +123,11 @@ function Dashboard() {
               </div>
             </div>
           </div>
+        </div>
+        
+        {/* API Key Setup Section */}
+        <div className="mb-8">
+          <ApiKeySetup user={user} />
         </div>
         
         <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-8 relative overflow-hidden">

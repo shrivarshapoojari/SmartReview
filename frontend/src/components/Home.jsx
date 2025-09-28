@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import ApiKeySetup from './ApiKeySetup';
 
 function Home() {
   const [installing, setInstalling] = useState(false);
@@ -9,7 +8,6 @@ function Home() {
   const navigate = useNavigate();
 
   const [user, setUser] = useState(null);
-  const [apiKeySetup, setApiKeySetup] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -71,16 +69,6 @@ function Home() {
     if (!user) {
       // redirect to dedicated login page
       navigate('/login');
-      return;
-    }
-
-    // Check if API key is set up
-    if (!apiKeySetup) {
-      // Scroll to API key setup section
-      const setupSection = document.getElementById('api-key-setup');
-      if (setupSection) {
-        setupSection.scrollIntoView({ behavior: 'smooth' });
-      }
       return;
     }
 
@@ -221,16 +209,6 @@ function Home() {
             </div>
           </div>
         </div>
-
-        {/* API Key Setup Section */}
-        {user && (
-          <div id="api-key-setup">
-            <ApiKeySetup
-              user={user}
-              onSetupComplete={() => setApiKeySetup(true)}
-            />
-          </div>
-        )}
 
         {/* Install Section */}
         <div className="bg-white rounded-3xl p-12 mb-12 shadow-2xl border border-gray-100 relative overflow-hidden">
