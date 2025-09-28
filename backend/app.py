@@ -160,6 +160,9 @@ def run_analysis(repo_name, pr_number, installation_token, sender_id=None):
             "feedback": []
         })
 
+        # Increment analysis count for the user
+        User.increment_analysis_count(sender_id)
+
         # Restore original environment variables
         if original_token:
             os.environ['GITHUB_TOKEN'] = original_token
@@ -354,6 +357,10 @@ def get_user():
     try:
         decoded = jwt.decode(jwt_token, JWT_SECRET, algorithms=['HS256'])
         user = decoded['user']
+        # Add analysis count
+        github_id = user.get('id')
+        if github_id:
+            user['analysis_count'] = User.get_analysis_count(github_id)
         return jsonify(user)
     except jwt.ExpiredSignatureError:
         return jsonify({'error': 'Token expired'}), 401

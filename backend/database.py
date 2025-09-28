@@ -62,7 +62,7 @@ class User:
             encrypted_key = encrypt_api_key(groq_api_key)
             db.users.update_one(
                 {"github_id": github_id},
-                {"$set": {"groq_api_key": encrypted_key}},
+                {"$set": {"groq_api_key": encrypted_key}, "$setOnInsert": {"analysis_count": 0}},
                 upsert=True
             )
             print(f"Successfully saved API key for user {github_id}")
@@ -105,6 +105,24 @@ class User:
             return False
 
     @staticmethod
+    def get_decrypted_api_key(github_id):
+        """Get decrypted API key for user"""
+        user = User.get_by_github_id(github_id)
+        if user and "groq_api_key" in user:
+            return decrypt_api_key(user["groq_api_key"])
+        return None
+
+    @staticmethod
+    def increment_analysis_count(github_id):
+        """Increment analysis count for user"""
+        if db is None:
+            return
+        db.users.update_one(
+            {"github_id": github_id},
+            {"$inc": {"analysis_count": 1}}
+        )
+
+    @staticmethod
     def delete_api_key(github_id):
         """Delete API key for user"""
         if db is None:
@@ -123,3 +141,11 @@ class User:
             print(f"Failed to delete API key for user {github_id}: {e}")
             logging.error(f"Failed to delete API key for user {github_id}: {e}")
             raise
+
+    @staticmethod
+    def get_analysis_count(github_id):
+        """Get analysis count for user"""
+        user = User.get_by_github_id(github_id)
+        return user.get("analysis_count", 0) if user else 0
+    
+        
