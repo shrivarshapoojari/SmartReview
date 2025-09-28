@@ -6,6 +6,7 @@ import jwt
 import time
 import requests
 import json
+import logging
 from dotenv import load_dotenv
 from code_review_agent import code_review_agent
 import threading
@@ -24,7 +25,12 @@ app = Flask(__name__)
 JWT_SECRET = os.getenv("JWT_SECRET", "dev-jwt-secret")
 
 # Initialize database
-init_db(app)
+try:
+    init_db(app)
+    app.logger.info("Database initialized successfully")
+except Exception as e:
+    app.logger.error(f"Failed to initialize database: {e}")
+    raise
 
 # GitHub App configuration
 GITHUB_APP_ID = os.getenv("GITHUB_APP_ID")
@@ -118,6 +124,8 @@ def github_webhook():
             sender = data.get('sender', {})
             sender_id = sender.get('id')
 
+            app.logger.info(f"Processing PR {pr_number} for repo {repo_name}, sender_id: {sender_id}")
+
             # Get installation token for this event
             installation_token = get_installation_token(installation_id)
 
@@ -130,15 +138,18 @@ def github_webhook():
 
 def run_analysis(repo_name, pr_number, installation_token, sender_id=None):
     try:
+        logging.info(f"Starting analysis for {repo_name}#{pr_number}, sender_id: {sender_id}")
         # Check if user has set up their API key
         if not sender_id:
-            print(f"Error: No sender ID provided for analysis of {repo_name}#{pr_number}")
+            logging.error(f"No sender ID provided for analysis of {repo_name}#{pr_number}")
             return
             
         user_api_key = User.get_decrypted_api_key(sender_id)
         if not user_api_key:
-            print(f"Error: User {sender_id} has not set up their Groq API key. Skipping analysis for {repo_name}#{pr_number}")
+            logging.error(f"User {sender_id} has not set up their Groq API key. Skipping analysis for {repo_name}#{pr_number}")
             return
+
+        logging.info(f"User {sender_id} has API key, proceeding with analysis")
 
         # Temporarily set the token and API key for this analysis
         original_token = os.environ.get('GITHUB_TOKEN')
@@ -166,7 +177,7 @@ def run_analysis(repo_name, pr_number, installation_token, sender_id=None):
             os.environ.pop('GROQ_API_KEY', None)
 
     except Exception as e:
-        print(f"Error during analysis of {repo_name}#{pr_number}: {str(e)}")
+        logging.error(f"Error during analysis of {repo_name}#{pr_number}: {str(e)}")
 
 @app.route('/install')
 def install_app():
@@ -391,8 +402,10 @@ def setup_api_key():
     # Save to database
     try:
         User.create_or_update(github_id, groq_api_key)
+        logging.info(f"API key saved successfully for user {github_id}")
         return jsonify({'message': 'API key saved successfully'}), 200
     except Exception as e:
+        logging.error(f"Failed to save API key for user {github_id}: {e}")
         return jsonify({'error': 'Failed to save API key'}), 500
 
 @app.route('/api/setup-status', methods=['GET'])
