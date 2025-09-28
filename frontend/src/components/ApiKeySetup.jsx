@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 
 function ApiKeySetup({ user, onSetupComplete }) {
   const [apiKey, setApiKey] = useState('');
   const [saving, setSaving] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(false);
   const [checking, setChecking] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [validationError, setValidationError] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -26,16 +26,67 @@ function ApiKeySetup({ user, onSetupComplete }) {
     }
   };
 
+  const validateApiKey = (key) => {
+    if (!key || !key.trim()) {
+      return 'Please enter your Groq API key';
+    }
+
+    const trimmedKey = key.trim();
+
+    // Check if it starts with "gsk_"
+    if (!trimmedKey.startsWith('gsk_')) {
+      return 'Invalid API key format. Groq API keys must start with "gsk_"';
+    }
+
+    // Check minimum length (Groq keys are typically 50+ characters)
+    if (trimmedKey.length < 20) {
+      return 'API key appears to be too short. Please check your key from Groq Console';
+    }
+
+    // Check maximum length (reasonable upper bound)
+    if (trimmedKey.length > 200) {
+      return 'API key appears to be too long. Please check your key from Groq Console';
+    }
+
+    // Check for valid characters (alphanumeric, underscores, hyphens)
+    const validKeyPattern = /^gsk_[a-zA-Z0-9_-]+$/;
+    if (!validKeyPattern.test(trimmedKey)) {
+      return 'API key contains invalid characters. Only letters, numbers, underscores, and hyphens are allowed';
+    }
+
+    // Check if it looks like a real Groq key (basic pattern check)
+    // Groq keys typically follow: gsk_ followed by a mix of letters, numbers, underscores, hyphens
+    const groqKeyPattern = /^gsk_[a-zA-Z0-9_-]{40,}$/;
+    if (!groqKeyPattern.test(trimmedKey)) {
+      return 'API key format appears incorrect. Please verify you copied the complete key from Groq Console';
+    }
+
+    return null; // Valid
+  };
+
+  const handleApiKeyChange = (e) => {
+    const value = e.target.value;
+    setApiKey(value);
+    
+    // Real-time validation for immediate feedback
+    if (value.trim()) {
+      const validation = validateApiKey(value);
+      setValidationError(validation);
+    } else {
+      setValidationError('');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!apiKey.trim()) {
-      setError('Please enter your Groq API key');
+    
+    const currentValidationError = validateApiKey(apiKey);
+    if (currentValidationError) {
+      toast.error(currentValidationError);
       return;
     }
 
     setSaving(true);
-    setError('');
-    setSuccess('');
 
     try {
       const response = await axios.post(
@@ -49,12 +100,12 @@ function ApiKeySetup({ user, onSetupComplete }) {
         }
       );
 
-      setSuccess('API key saved successfully!');
+      toast.success('API key saved successfully!');
       setHasApiKey(true);
       setApiKey('');
       onSetupComplete && onSetupComplete();
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to save API key');
+      toast.error(err.response?.data?.error || 'Failed to save API key');
     } finally {
       setSaving(false);
     }
@@ -126,11 +177,21 @@ function ApiKeySetup({ user, onSetupComplete }) {
               type="password"
               id="apiKey"
               value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
+              onChange={handleApiKeyChange}
               placeholder="gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-lg"
+              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-lg ${
+                validationError ? 'border-red-300 bg-red-50' : 'border-gray-300'
+              }`}
               required
             />
+            {validationError && (
+              <p className="text-sm text-red-600 mt-1 flex items-center">
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {validationError}
+              </p>
+            )}
             <p className="text-sm text-gray-500 mt-2">
               Get your API key from{' '}
               <a
@@ -143,28 +204,6 @@ function ApiKeySetup({ user, onSetupComplete }) {
               </a>
             </p>
           </div>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-              <div className="flex items-center space-x-2">
-                <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="text-red-800 text-sm">{error}</p>
-              </div>
-            </div>
-          )}
-
-          {success && (
-            <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-              <div className="flex items-center space-x-2">
-                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <p className="text-green-800 text-sm">{success}</p>
-              </div>
-            </div>
-          )}
 
           <button
             type="submit"
