@@ -5,6 +5,7 @@ langchain-community
 PyGithub
 python-dotenv
 Flask
+flask-pymongo
 requests
 cryptography
 PyJWT

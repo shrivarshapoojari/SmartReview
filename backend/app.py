@@ -11,11 +11,15 @@ from code_review_agent import code_review_agent
 import threading
 import base64
 from urllib.parse import quote_plus
+from database import init_db, User
 
 load_dotenv()
 
 app = Flask(__name__)
 JWT_SECRET = os.getenv("JWT_SECRET", "dev-jwt-secret")
+
+# Initialize database
+init_db(app)
 
 # GitHub App configuration
 GITHUB_APP_ID = os.getenv("GITHUB_APP_ID")
@@ -134,7 +138,7 @@ def run_analysis(repo_name, pr_number, installation_token):
         if original_token:
             os.environ['GITHUB_TOKEN'] = original_token
         else:
-            del os.environ['GITHUB_TOKEN']
+            os.environ.pop('GITHUB_TOKEN', None)
 
     except Exception as e:
         pass
@@ -324,6 +328,76 @@ def get_user():
         return jsonify({'error': 'Token expired'}), 401
     except jwt.InvalidTokenError:
         return jsonify({'error': 'Invalid token'}), 401
+
+@app.route('/api/setup-key', methods=['POST'])
+def setup_api_key():
+    """Set up user's Groq API key"""
+    jwt_token = None
+    
+    # Check Authorization header first
+    auth_header = request.headers.get('Authorization')
+    if auth_header and auth_header.startswith('Bearer '):
+        jwt_token = auth_header.split(' ')[1]
+    else:
+        # Fallback to cookie
+        jwt_token = request.cookies.get('jwt')
+    
+    if not jwt_token:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    try:
+        decoded = jwt.decode(jwt_token, JWT_SECRET, algorithms=['HS256'])
+        user = decoded['user']
+        github_id = user['id']
+    except jwt.ExpiredSignatureError:
+        return jsonify({'error': 'Token expired'}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({'error': 'Invalid token'}), 401
+    
+    # Get API key from request
+    data = request.get_json()
+    if not data or 'api_key' not in data:
+        return jsonify({'error': 'API key is required'}), 400
+    
+    groq_api_key = data['api_key'].strip()
+    if not groq_api_key:
+        return jsonify({'error': 'API key cannot be empty'}), 400
+    
+    # Save to database
+    try:
+        User.create_or_update(github_id, groq_api_key)
+        return jsonify({'message': 'API key saved successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': 'Failed to save API key'}), 500
+
+@app.route('/api/setup-status', methods=['GET'])
+def get_setup_status():
+    """Check if user has set up their API key"""
+    jwt_token = None
+    
+    # Check Authorization header first
+    auth_header = request.headers.get('Authorization')
+    if auth_header and auth_header.startswith('Bearer '):
+        jwt_token = auth_header.split(' ')[1]
+    else:
+        # Fallback to cookie
+        jwt_token = request.cookies.get('jwt')
+    
+    if not jwt_token:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    try:
+        decoded = jwt.decode(jwt_token, JWT_SECRET, algorithms=['HS256'])
+        user = decoded['user']
+        github_id = user['id']
+    except jwt.ExpiredSignatureError:
+        return jsonify({'error': 'Token expired'}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({'error': 'Invalid token'}), 401
+    
+    # Check if user has API key
+    has_key = User.has_api_key(github_id)
+    return jsonify({'has_api_key': has_key}), 200
 
 @app.after_request
 def after_request(response):
