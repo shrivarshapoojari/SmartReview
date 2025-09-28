@@ -105,22 +105,21 @@ class User:
             return False
 
     @staticmethod
-    def get_decrypted_api_key(github_id):
-        """Get decrypted API key for user"""
+    def delete_api_key(github_id):
+        """Delete API key for user"""
         if db is None:
             print("ERROR: Database not initialized - db is None")
-            return None
-        print(f"Getting decrypted API key for user {github_id}")
+            raise Exception("Database not initialized")
+        print(f"Attempting to delete API key for user {github_id}")
         try:
-            user = User.get_by_github_id(github_id)
-            if user and "groq_api_key" in user:
-                decrypted_key = decrypt_api_key(user["groq_api_key"])
-                print(f"Successfully decrypted API key for user {github_id}")
-                return decrypted_key
-            else:
-                print(f"No API key found for user {github_id}")
-                return None
+            result = db.users.update_one(
+                {"github_id": github_id},
+                {"$unset": {"groq_api_key": ""}}
+            )
+            deleted = result.modified_count > 0
+            print(f"API key deletion for user {github_id}: {'successful' if deleted else 'no key found'}")
+            return deleted
         except Exception as e:
-            print(f"Failed to get decrypted API key for user {github_id}: {e}")
-            logging.error(f"Failed to get decrypted API key for user {github_id}: {e}")
-            return None
+            print(f"Failed to delete API key for user {github_id}: {e}")
+            logging.error(f"Failed to delete API key for user {github_id}: {e}")
+            raise

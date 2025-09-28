@@ -417,6 +417,51 @@ def setup_api_key():
         logging.error(f"Failed to save API key for user {github_id}: {e}")
         return jsonify({'error': 'Failed to save API key'}), 500
 
+@app.route('/api/setup-key', methods=['DELETE'])
+def delete_api_key():
+    """Delete user's Groq API key"""
+    print("API endpoint /api/setup-key DELETE called")
+    jwt_token = None
+    
+    # Check Authorization header first
+    auth_header = request.headers.get('Authorization')
+    if auth_header and auth_header.startswith('Bearer '):
+        jwt_token = auth_header.split(' ')[1]
+    else:
+        # Fallback to cookie
+        jwt_token = request.cookies.get('jwt')
+    
+    if not jwt_token:
+        print("No JWT token found")
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    try:
+        decoded = jwt.decode(jwt_token, JWT_SECRET, algorithms=['HS256'])
+        user = decoded['user']
+        github_id = user['id']
+        print(f"Authenticated user: {github_id}")
+    except jwt.ExpiredSignatureError:
+        print("JWT token expired")
+        return jsonify({'error': 'Token expired'}), 401
+    except jwt.InvalidTokenError:
+        print("Invalid JWT token")
+        return jsonify({'error': 'Invalid token'}), 401
+    
+    # Delete API key from database
+    try:
+        deleted = User.delete_api_key(github_id)
+        if deleted:
+            print(f"API key deleted successfully for user {github_id}")
+            logging.info(f"API key deleted successfully for user {github_id}")
+            return jsonify({'message': 'API key deleted successfully'}), 200
+        else:
+            print(f"No API key found to delete for user {github_id}")
+            return jsonify({'message': 'No API key found to delete'}), 404
+    except Exception as e:
+        print(f"Failed to delete API key: {e}")
+        logging.error(f"Failed to delete API key for user {github_id}: {e}")
+        return jsonify({'error': 'Failed to delete API key'}), 500
+
 @app.route('/api/setup-status', methods=['GET'])
 def get_setup_status():
     """Check if user has set up their API key"""
