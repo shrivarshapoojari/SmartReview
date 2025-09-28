@@ -133,16 +133,21 @@ def github_webhook():
 
 def run_analysis(repo_name, pr_number, installation_token, sender_id=None):
     try:
+        print(f"Starting analysis for {repo_name}#{pr_number}, sender_id: {sender_id}")
         logging.info(f"Starting analysis for {repo_name}#{pr_number}, sender_id: {sender_id}")
         # Check if user has set up their API key
         if not sender_id:
+            print(f"Error: No sender ID provided for analysis of {repo_name}#{pr_number}")
             logging.error(f"No sender ID provided for analysis of {repo_name}#{pr_number}")
             return
             
         user_api_key = User.get_decrypted_api_key(sender_id)
         if not user_api_key:
+            print(f"Error: User {sender_id} has not set up their Groq API key. Skipping analysis for {repo_name}#{pr_number}")
             logging.error(f"User {sender_id} has not set up their Groq API key. Skipping analysis for {repo_name}#{pr_number}")
             return
+
+        print(f"User {sender_id} has API key, proceeding with analysis")
 
         logging.info(f"User {sender_id} has API key, proceeding with analysis")
 
@@ -363,6 +368,7 @@ def get_user():
 @app.route('/api/setup-key', methods=['POST'])
 def setup_api_key():
     """Set up user's Groq API key"""
+    print("API endpoint /api/setup-key called")
     jwt_token = None
     
     # Check Authorization header first
@@ -374,38 +380,47 @@ def setup_api_key():
         jwt_token = request.cookies.get('jwt')
     
     if not jwt_token:
+        print("No JWT token found")
         return jsonify({'error': 'Not authenticated'}), 401
     
     try:
         decoded = jwt.decode(jwt_token, JWT_SECRET, algorithms=['HS256'])
         user = decoded['user']
         github_id = user['id']
+        print(f"Authenticated user: {github_id}")
     except jwt.ExpiredSignatureError:
+        print("JWT token expired")
         return jsonify({'error': 'Token expired'}), 401
     except jwt.InvalidTokenError:
+        print("Invalid JWT token")
         return jsonify({'error': 'Invalid token'}), 401
     
     # Get API key from request
     data = request.get_json()
     if not data or 'api_key' not in data:
+        print("No API key in request data")
         return jsonify({'error': 'API key is required'}), 400
     
     groq_api_key = data['api_key'].strip()
     if not groq_api_key:
+        print("API key is empty")
         return jsonify({'error': 'API key cannot be empty'}), 400
     
     # Save to database
     try:
         User.create_or_update(github_id, groq_api_key)
+        print(f"API key saved successfully for user {github_id}")
         logging.info(f"API key saved successfully for user {github_id}")
         return jsonify({'message': 'API key saved successfully'}), 200
     except Exception as e:
+        print(f"Failed to save API key: {e}")
         logging.error(f"Failed to save API key for user {github_id}: {e}")
         return jsonify({'error': 'Failed to save API key'}), 500
 
 @app.route('/api/setup-status', methods=['GET'])
 def get_setup_status():
     """Check if user has set up their API key"""
+    print("API endpoint /api/setup-status called")
     jwt_token = None
     
     # Check Authorization header first
@@ -417,19 +432,24 @@ def get_setup_status():
         jwt_token = request.cookies.get('jwt')
     
     if not jwt_token:
+        print("No JWT token found")
         return jsonify({'error': 'Not authenticated'}), 401
     
     try:
         decoded = jwt.decode(jwt_token, JWT_SECRET, algorithms=['HS256'])
         user = decoded['user']
         github_id = user['id']
+        print(f"Authenticated user: {github_id}")
     except jwt.ExpiredSignatureError:
+        print("JWT token expired")
         return jsonify({'error': 'Token expired'}), 401
     except jwt.InvalidTokenError:
+        print("Invalid JWT token")
         return jsonify({'error': 'Invalid token'}), 401
     
     # Check if user has API key
     has_key = User.has_api_key(github_id)
+    print(f"Returning has_api_key: {has_key}")
     return jsonify({'has_api_key': has_key}), 200
 
 @app.after_request

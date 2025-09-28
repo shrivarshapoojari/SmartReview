@@ -5,8 +5,9 @@ langchain-community
 PyGithub
 python-dotenv
 Flask
-flask-pymongo
+pymongo
 requests
 cryptography
 PyJWT
 gunicorn
+pymongo[srv]
