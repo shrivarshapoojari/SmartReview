@@ -143,7 +143,6 @@ def run_analysis(repo_name, pr_number, installation_token, sender_id=None):
             return
 
         print(f"User {sender_id} has API key, proceeding with analysis")
-
         logging.info(f"User {sender_id} has API key, proceeding with analysis")
 
         # Temporarily set the token and API key for this analysis
@@ -153,15 +152,18 @@ def run_analysis(repo_name, pr_number, installation_token, sender_id=None):
         os.environ['GITHUB_TOKEN'] = installation_token
         os.environ['GROQ_API_KEY'] = user_api_key
 
+        print(f"Starting code review agent for {repo_name}#{pr_number}")
         result = code_review_agent.invoke({
             "repo_name": repo_name,
             "pr_number": pr_number,
             "code_changes": [],
             "feedback": []
         })
+        print(f"Code review agent completed for {repo_name}#{pr_number}")
 
         # Increment analysis count for the user
         User.increment_analysis_count(sender_id)
+        print(f"Analysis count incremented for user {sender_id}")
 
         # Restore original environment variables
         if original_token:
@@ -175,9 +177,30 @@ def run_analysis(repo_name, pr_number, installation_token, sender_id=None):
             os.environ.pop('GROQ_API_KEY', None)
 
     except Exception as e:
+        print(f"Exception occurred during analysis of {repo_name}#{pr_number}: {str(e)}")
+        print(f"Exception type: {type(e).__name__}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
         logging.error(f"Error during analysis of {repo_name}#{pr_number}: {str(e)}")
-
-@app.route('/install')
+        logging.error(f"Exception type: {type(e).__name__}")
+        logging.error(f"Traceback: {traceback.format_exc()}")
+        
+        # Make sure to restore environment variables even if there's an error
+        try:
+            if 'original_token' in locals():
+                if original_token:
+                    os.environ['GITHUB_TOKEN'] = original_token
+                else:
+                    os.environ.pop('GITHUB_TOKEN', None)
+                    
+            if 'original_groq_key' in locals():
+                if original_groq_key:
+                    os.environ['GROQ_API_KEY'] = original_groq_key
+                else:
+                    os.environ.pop('GROQ_API_KEY', None)
+        except Exception as restore_error:
+            print(f"Error restoring environment variables: {str(restore_error)}")
+            logging.error(f"Error restoring environment variables: {str(restore_error)}")@app.route('/install')
 def install_app():
     """Redirect to GitHub App installation"""
     github_url = f"https://github.com/apps/{GITHUB_APP_NAME}/installations/new"
