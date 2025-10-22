@@ -21,6 +21,7 @@ llm = ChatGroq(
  )
 # Fetch PR changes
 def fetch_pr_changes(state: CodeReviewState):
+    print("fetch_pr_changes called")
     repo_name = state["repo_name"]
     pr_number = state["pr_number"]
     
