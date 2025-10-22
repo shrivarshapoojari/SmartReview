@@ -129,80 +129,88 @@ def github_webhook():
     return jsonify({'status': 'Event ignored'}), 200
 
 def run_analysis(repo_name, pr_number, installation_token, sender_id=None):
-    try:
-        print(f"Starting analysis for {repo_name}#{pr_number}, sender_id: {sender_id}")
-        logging.info(f"Starting analysis for {repo_name}#{pr_number}, sender_id: {sender_id}")
-        # Check if user has set up their API key
-        if not sender_id:
-            print(f"Error: No sender ID provided for analysis of {repo_name}#{pr_number}")
-            logging.error(f"No sender ID provided for analysis of {repo_name}#{pr_number}")
-            return
-            
-        user_api_key = User.get_decrypted_api_key(sender_id)
-        if not user_api_key:
-            print(f"Error: User {sender_id} has not set up their Groq API key. Skipping analysis for {repo_name}#{pr_number}")
-            logging.error(f"User {sender_id} has not set up their Groq API key. Skipping analysis for {repo_name}#{pr_number}")
-            return
-
-        print(f"User {sender_id} has API key, proceeding with analysis")
-        logging.info(f"User {sender_id} has API key, proceeding with analysis")
-
-        # Temporarily set the token and API key for this analysis
-        original_token = os.environ.get('GITHUB_TOKEN')
-        original_groq_key = os.environ.get('GROQ_API_KEY')
-        
-        os.environ['GITHUB_TOKEN'] = installation_token
-        os.environ['GROQ_API_KEY'] = user_api_key
-
-        print(f"Starting code review agent for {repo_name}#{pr_number}")
-        result = code_review_agent.invoke({
-            "repo_name": repo_name,
-            "pr_number": pr_number,
-            "code_changes": [],
-            "feedback": []
-        })
-        print(f"Code review agent completed for {repo_name}#{pr_number}")
-
-        # Increment analysis count for the user
-        User.increment_analysis_count(sender_id)
-        print(f"Analysis count incremented for user {sender_id}")
-
-        # Restore original environment variables
-        if original_token:
-            os.environ['GITHUB_TOKEN'] = original_token
-        else:
-            os.environ.pop('GITHUB_TOKEN', None)
-            
-        if original_groq_key:
-            os.environ['GROQ_API_KEY'] = original_groq_key
-        else:
-            os.environ.pop('GROQ_API_KEY', None)
-
-    except Exception as e:
-        print(f"Exception occurred during analysis of {repo_name}#{pr_number}: {str(e)}")
-        print(f"Exception type: {type(e).__name__}")
-        import traceback
-        print(f"Traceback: {traceback.format_exc()}")
-        logging.error(f"Error during analysis of {repo_name}#{pr_number}: {str(e)}")
-        logging.error(f"Exception type: {type(e).__name__}")
-        logging.error(f"Traceback: {traceback.format_exc()}")
-        
-        # Make sure to restore environment variables even if there's an error
+    max_retries = 3
+    for attempt in range(1, max_retries + 1):
         try:
-            if 'original_token' in locals():
-                if original_token:
-                    os.environ['GITHUB_TOKEN'] = original_token
-                else:
-                    os.environ.pop('GITHUB_TOKEN', None)
-                    
-            if 'original_groq_key' in locals():
-                if original_groq_key:
-                    os.environ['GROQ_API_KEY'] = original_groq_key
-                else:
-                    os.environ.pop('GROQ_API_KEY', None)
-        except Exception as restore_error:
-            print(f"Error restoring environment variables: {str(restore_error)}")
-            logging.error(f"Error restoring environment variables: {str(restore_error)}")
+            print(f"Starting analysis for {repo_name}#{pr_number}, sender_id: {sender_id}, attempt {attempt}")
+            logging.info(f"Starting analysis for {repo_name}#{pr_number}, sender_id: {sender_id}, attempt {attempt}")
+            # Check if user has set up their API key
+            if not sender_id:
+                print(f"Error: No sender ID provided for analysis of {repo_name}#{pr_number}")
+                logging.error(f"No sender ID provided for analysis of {repo_name}#{pr_number}")
+                return
+            user_api_key = User.get_decrypted_api_key(sender_id)
+            if not user_api_key:
+                print(f"Error: User {sender_id} has not set up their Groq API key. Skipping analysis for {repo_name}#{pr_number}")
+                logging.error(f"User {sender_id} has not set up their Groq API key. Skipping analysis for {repo_name}#{pr_number}")
+                return
+
+            print(f"User {sender_id} has API key, proceeding with analysis")
+            logging.info(f"User {sender_id} has API key, proceeding with analysis")
+
+            # Temporarily set the token and API key for this analysis
+            original_token = os.environ.get('GITHUB_TOKEN')
+            original_groq_key = os.environ.get('GROQ_API_KEY')
+
+            os.environ['GITHUB_TOKEN'] = installation_token
+            os.environ['GROQ_API_KEY'] = user_api_key
+
+            print(f"Starting code review agent for {repo_name}#{pr_number}")
+            result = code_review_agent.invoke({
+                "repo_name": repo_name,
+                "pr_number": pr_number,
+                "code_changes": [],
+                "feedback": []
+            })
+            print(f"Code review agent completed for {repo_name}#{pr_number}")
+
+            # Increment analysis count for the user
+            User.increment_analysis_count(sender_id)
+            print(f"Analysis count incremented for user {sender_id}")
+
+            # Restore original environment variables
+            if original_token:
+                os.environ['GITHUB_TOKEN'] = original_token
+            else:
+                os.environ.pop('GITHUB_TOKEN', None)
+
+            if original_groq_key:
+                os.environ['GROQ_API_KEY'] = original_groq_key
+            else:
+                os.environ.pop('GROQ_API_KEY', None)
+
+            # If we reach here, analysis succeeded, break out of retry loop
+            break
+        except Exception as e:
+            print(f"Exception occurred during analysis of {repo_name}#{pr_number} (attempt {attempt}): {str(e)}")
+            print(f"Exception type: {type(e).__name__}")
+            import traceback
+            print(f"Traceback: {traceback.format_exc()}")
+            logging.error(f"Error during analysis of {repo_name}#{pr_number} (attempt {attempt}): {str(e)}")
+            logging.error(f"Exception type: {type(e).__name__}")
+            logging.error(f"Traceback: {traceback.format_exc()}")
+
+            # Make sure to restore environment variables even if there's an error
+            try:
+                if 'original_token' in locals():
+                    if original_token:
+                        os.environ['GITHUB_TOKEN'] = original_token
+                    else:
+                        os.environ.pop('GITHUB_TOKEN', None)
+
+                if 'original_groq_key' in locals():
+                    if original_groq_key:
+                        os.environ['GROQ_API_KEY'] = original_groq_key
+                    else:
+                        os.environ.pop('GROQ_API_KEY', None)
+            except Exception as restore_error:
+                print(f"Error restoring environment variables: {str(restore_error)}")
+                logging.error(f"Error restoring environment variables: {str(restore_error)}")
+
+            # If this was the last attempt, log final failure
+            if attempt == max_retries:
+                print(f"Analysis failed after {max_retries} attempts for {repo_name}#{pr_number}")
+                logging.error(f"Analysis failed after {max_retries} attempts for {repo_name}#{pr_number}")
          
 @app.route('/install')
 def install_app():
