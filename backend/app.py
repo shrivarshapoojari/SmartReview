@@ -200,7 +200,9 @@ def run_analysis(repo_name, pr_number, installation_token, sender_id=None):
                     os.environ.pop('GROQ_API_KEY', None)
         except Exception as restore_error:
             print(f"Error restoring environment variables: {str(restore_error)}")
-            logging.error(f"Error restoring environment variables: {str(restore_error)}")@app.route('/install')
+            logging.error(f"Error restoring environment variables: {str(restore_error)}")
+         
+@app.route('/install')
 def install_app():
     """Redirect to GitHub App installation"""
     github_url = f"https://github.com/apps/{GITHUB_APP_NAME}/installations/new"
@@ -210,6 +212,7 @@ def install_app():
     return redirect(github_url)
 
 
+ 
 @app.route('/auth/login')
 def auth_login():
     client_id = GITHUB_CLIENT_ID  # Use GitHub App's client ID for OAuth to authorize app access
