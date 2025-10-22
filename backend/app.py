@@ -96,6 +96,7 @@ def verify_signature(payload, signature):
 
 @app.route('/webhook', methods=['POST'])
 def github_webhook():
+    print("webhook called")
     payload = request.get_data()
     signature = request.headers.get('X-Hub-Signature-256')
 
@@ -107,6 +108,7 @@ def github_webhook():
 
     if event == 'pull_request':
         action = data.get('action')
+        print(action)
         if action in ['opened', 'synchronize', 'reopened']:
             repo_name = data['repository']['full_name']
             pr_number = data['pull_request']['number']
