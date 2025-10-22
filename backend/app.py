@@ -123,7 +123,7 @@ def github_webhook():
 
             # Run analysis with installation token and user ID
             threading.Thread(target=run_analysis, args=(repo_name, pr_number, installation_token, sender_id)).start()
-
+            print("Analysis started")
             return jsonify({'status': 'Analysis started'}), 200
 
     return jsonify({'status': 'Event ignored'}), 200
